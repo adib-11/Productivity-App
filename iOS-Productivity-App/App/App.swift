@@ -6,14 +6,19 @@
 //
 
 import SwiftUI
+import FirebaseCore
 
 @main
 struct iOS_Productivity_AppApp: App {
+    
+    init() {
+        // Configure Firebase
+        FirebaseApp.configure()
+    }
+    
     var body: some Scene {
         WindowGroup {
             ContentView()
         }
     }
 }
-
-// TODO: Firebase configuration will be added in Story 1.2

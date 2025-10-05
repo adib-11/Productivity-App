@@ -91,3 +91,9 @@ iOSInjectionProject/
 
 # macOS
 .DS_Store
+
+# Firebase
+#
+# GoogleService-Info.plist is committed for development environment.
+# For production, use environment-specific configuration through CI/CD.
+# The development Firebase project should have appropriate security rules.
