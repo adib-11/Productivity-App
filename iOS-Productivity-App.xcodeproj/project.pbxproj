@@ -7,13 +7,13 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		001 /* iOS_Productivity_AppApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 002 /* iOS_Productivity_AppApp.swift */; };
+		001 /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 002 /* App.swift */; };
 		003 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 004 /* ContentView.swift */; };
 		005 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 006 /* Assets.xcassets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		002 /* iOS_Productivity_AppApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iOS_Productivity_AppApp.swift; sourceTree = "<group>"; };
+		002 /* App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App.swift; sourceTree = "<group>"; };
 		004 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		006 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		007 /* iOS-Productivity-App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "iOS-Productivity-App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -41,9 +41,10 @@
 		010 /* iOS-Productivity-App */ = {
 			isa = PBXGroup;
 			children = (
-				002 /* iOS_Productivity_AppApp.swift */,
+				012 /* App */,
+				013 /* Core */,
+				014 /* Features */,
 				004 /* ContentView.swift */,
-				006 /* Assets.xcassets */,
 			);
 			path = "iOS-Productivity-App";
 			sourceTree = "<group>";
@@ -56,16 +57,135 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		012 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				002 /* App.swift */,
+				006 /* Assets.xcassets */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		013 /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				015 /* Models */,
+				016 /* Services */,
+				017 /* Utils */,
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
+		014 /* Features */ = {
+			isa = PBXGroup;
+			children = (
+				018 /* Authentication */,
+				019 /* Schedule */,
+				020 /* TaskInbox */,
+			);
+			path = Features;
+			sourceTree = "<group>";
+		};
+		015 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		016 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		017 /* Utils */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Utils;
+			sourceTree = "<group>";
+		};
+		018 /* Authentication */ = {
+			isa = PBXGroup;
+			children = (
+				021 /* Views */,
+				022 /* ViewModels */,
+			);
+			path = Authentication;
+			sourceTree = "<group>";
+		};
+		019 /* Schedule */ = {
+			isa = PBXGroup;
+			children = (
+				023 /* Views */,
+				024 /* ViewModels */,
+			);
+			path = Schedule;
+			sourceTree = "<group>";
+		};
+		020 /* TaskInbox */ = {
+			isa = PBXGroup;
+			children = (
+				025 /* Views */,
+				026 /* ViewModels */,
+			);
+			path = TaskInbox;
+			sourceTree = "<group>";
+		};
+		021 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		022 /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		023 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		024 /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		025 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		026 /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		012 /* iOS-Productivity-App */ = {
+		027 /* iOS-Productivity-App */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 013 /* Build configuration list for PBXNativeTarget "iOS-Productivity-App" */;
+			buildConfigurationList = 028 /* Build configuration list for PBXNativeTarget "iOS-Productivity-App" */;
 			buildPhases = (
-				014 /* Sources */,
+				029 /* Sources */,
 				008 /* Frameworks */,
-				015 /* Resources */,
+				030 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -79,19 +199,19 @@
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		016 /* Project object */ = {
+		031 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1500;
 				LastUpgradeCheck = 1500;
 				TargetAttributes = {
-					012 = {
+					027 = {
 						CreatedOnToolsVersion = 15.0;
 					};
 				};
 			};
-			buildConfigurationList = 017 /* Build configuration list for PBXProject "iOS-Productivity-App" */;
+			buildConfigurationList = 032 /* Build configuration list for PBXProject "iOS-Productivity-App" */;
 			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -104,13 +224,13 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				012 /* iOS-Productivity-App */,
+				027 /* iOS-Productivity-App */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		015 /* Resources */ = {
+		030 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -121,19 +241,19 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		014 /* Sources */ = {
+		029 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 				003 /* ContentView.swift in Sources */,
-				001 /* iOS_Productivity_AppApp.swift in Sources */,
+				001 /* App.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
-		018 /* Debug */ = {
+		033 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -197,7 +317,7 @@
 			};
 			name = Debug;
 		};
-		019 /* Release */ = {
+		034 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -254,7 +374,7 @@
 			};
 			name = Release;
 		};
-		020 /* Debug */ = {
+		035 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -283,7 +403,7 @@
 			};
 			name = Debug;
 		};
-		021 /* Release */ = {
+		036 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -315,25 +435,25 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		013 /* Build configuration list for PBXNativeTarget "iOS-Productivity-App" */ = {
+		028 /* Build configuration list for PBXNativeTarget "iOS-Productivity-App" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				020 /* Debug */,
-				021 /* Release */,
+				035 /* Debug */,
+				036 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		017 /* Build configuration list for PBXProject "iOS-Productivity-App" */ = {
+		032 /* Build configuration list for PBXProject "iOS-Productivity-App" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				018 /* Debug */,
-				019 /* Release */,
+				033 /* Debug */,
+				034 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
-	rootObject = 016 /* Project object */;
+	rootObject = 031 /* Project object */;
 }
