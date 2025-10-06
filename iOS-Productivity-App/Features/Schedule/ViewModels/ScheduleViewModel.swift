@@ -12,14 +12,17 @@ import SwiftUI
 class ScheduleViewModel: ObservableObject {
     @Published var commitments: [FixedCommitment] = []
     @Published var timeBlocks: [TimeBlock] = []
+    @Published var freeTimeSlots: [FreeTimeSlot] = []
     @Published var currentDate: Date = Date()
     @Published var isLoading = false
     @Published var errorMessage: String?
     
     private let repository: DataRepository
+    private let schedulingEngine: SchedulingEngine
     
-    init(repository: DataRepository) {
+    init(repository: DataRepository, schedulingEngine: SchedulingEngine = SchedulingEngine()) {
         self.repository = repository
+        self.schedulingEngine = schedulingEngine
     }
     
     func loadCommitments() async {
@@ -37,7 +40,8 @@ class ScheduleViewModel: ObservableObject {
     }
     
     func generateTimeBlocks() {
-        timeBlocks = commitments.map { commitment in
+        // Step 1: Create commitment blocks
+        var blocks: [TimeBlock] = commitments.map { commitment in
             TimeBlock(
                 title: commitment.title,
                 startTime: commitment.startTime,
@@ -45,6 +49,25 @@ class ScheduleViewModel: ObservableObject {
                 type: .commitment
             )
         }
+        
+        // Step 2: Calculate free time
+        calculateFreeTime()
+        
+        // Step 3: Create empty blocks from free time slots
+        let emptyBlocks = freeTimeSlots.map { slot in
+            TimeBlock(from: slot)
+        }
+        
+        // Step 4: Combine and sort
+        blocks.append(contentsOf: emptyBlocks)
+        timeBlocks = blocks.sorted { $0.startTime < $1.startTime }
+    }
+    
+    func calculateFreeTime() {
+        freeTimeSlots = schedulingEngine.findFreeTimeSlots(
+            for: currentDate,
+            commitments: commitments
+        )
     }
     
     func getCurrentTimeOffset() -> CGFloat {

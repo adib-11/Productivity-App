@@ -29,6 +29,9 @@
 		C061D9682E93E0FA00712682 /* TimeBlock.swift in Sources */ = {isa = PBXBuildFile; fileRef = C061D9672E93E0FA00712682 /* TimeBlock.swift */; };
 		C061D96A2E93E11300712682 /* ScheduleViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C061D9692E93E11300712682 /* ScheduleViewModel.swift */; };
 		C061D96C2E93E12500712682 /* TimelineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C061D96B2E93E12500712682 /* TimelineView.swift */; };
+		C061D9712E9402F800712682 /* FreeTimeSlot.swift in Sources */ = {isa = PBXBuildFile; fileRef = C061D96F2E9402F800712682 /* FreeTimeSlot.swift */; };
+		C061D9722E9402F800712682 /* SchedulingConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = C061D9702E9402F800712682 /* SchedulingConfiguration.swift */; };
+		C061D9742E94030600712682 /* SchedulingEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = C061D9732E94030600712682 /* SchedulingEngine.swift */; };
 		F001 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = F002 /* FirebaseAuth */; };
 		F003 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = F004 /* FirebaseFirestore */; };
 		F005 /* FirebaseFirestoreSwift in Frameworks */ = {isa = PBXBuildFile; productRef = F006 /* FirebaseFirestoreSwift */; };
@@ -69,6 +72,9 @@
 		C061D9672E93E0FA00712682 /* TimeBlock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeBlock.swift; sourceTree = "<group>"; };
 		C061D9692E93E11300712682 /* ScheduleViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleViewModel.swift; sourceTree = "<group>"; };
 		C061D96B2E93E12500712682 /* TimelineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimelineView.swift; sourceTree = "<group>"; };
+		C061D96F2E9402F800712682 /* FreeTimeSlot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FreeTimeSlot.swift; sourceTree = "<group>"; };
+		C061D9702E9402F800712682 /* SchedulingConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SchedulingConfiguration.swift; sourceTree = "<group>"; };
+		C061D9732E94030600712682 /* SchedulingEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SchedulingEngine.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -158,6 +164,8 @@
 		015 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				C061D96F2E9402F800712682 /* FreeTimeSlot.swift */,
+				C061D9702E9402F800712682 /* SchedulingConfiguration.swift */,
 				C061D9672E93E0FA00712682 /* TimeBlock.swift */,
 				C061D95B2E93CB9800712682 /* Task.swift */,
 				C061D94F2E93961500712682 /* FixedCommitment.swift */,
@@ -169,6 +177,7 @@
 		016 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				C061D9732E94030600712682 /* SchedulingEngine.swift */,
 				C061D9512E93962100712682 /* DataRepository.swift */,
 				C061D91F2E92F11F00712682 /* AuthManager.swift */,
 			);
@@ -393,6 +402,9 @@
 				C061D9572E93968600712682 /* CommitmentFormView.swift in Sources */,
 				C061D9582E93968600712682 /* ManageCommitmentsView.swift in Sources */,
 				001 /* App.swift in Sources */,
+				C061D9712E9402F800712682 /* FreeTimeSlot.swift in Sources */,
+				C061D9742E94030600712682 /* SchedulingEngine.swift in Sources */,
+				C061D9722E9402F800712682 /* SchedulingConfiguration.swift in Sources */,
 				C061D9262E92F16300712682 /* LoginView.swift in Sources */,
 				C061D9272E92F16300712682 /* SignUpView.swift in Sources */,
 				C061D96A2E93E11300712682 /* ScheduleViewModel.swift in Sources */,

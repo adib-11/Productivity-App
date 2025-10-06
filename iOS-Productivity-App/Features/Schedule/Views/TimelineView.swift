@@ -95,25 +95,131 @@ struct TimelineView: View {
     
     private func commitmentBlocksView() -> some View {
         ForEach(viewModel.timeBlocks) { block in
-            VStack(alignment: .leading, spacing: 4) {
-                Text(block.title)
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundColor(.white)
-                    .lineLimit(2)
-                
-                Text(block.formattedTimeRange)
-                    .font(.system(size: 12))
-                    .foregroundColor(.white.opacity(0.8))
+            let blockHeight = max(20, calculateBlockHeight(from: block.startTime, to: block.endTime))
+            let isSmallBlock = blockHeight < 50
+            let isVerySmallBlock = blockHeight < 35
+            
+            // Make empty blocks more compact
+            let horizontalPadding: CGFloat = block.type == .empty ? 4 : 6
+            let verticalPadding: CGFloat = block.type == .empty ? 2 : 3
+            
+            Group {
+                if isVerySmallBlock {
+                    // Horizontal layout for very small blocks
+                    HStack(spacing: 3) {
+                        Text(block.title)
+                            .font(.system(size: 9, weight: block.type == .commitment ? .semibold : .medium))
+                            .foregroundColor(textColorForBlock(block.type))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.5)
+                        
+                        Spacer()
+                        
+                        Text(block.formattedTimeRange)
+                            .font(.system(size: 8, weight: .medium))
+                            .foregroundColor(subtextColorForBlock(block.type))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.5)
+                    }
+                    .padding(.horizontal, horizontalPadding)
+                    .padding(.vertical, verticalPadding)
+                } else {
+                    // Vertical layout for normal blocks
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(block.title)
+                            .font(.system(size: isSmallBlock ? 10 : 15, weight: block.type == .commitment ? .semibold : .regular))
+                            .foregroundColor(textColorForBlock(block.type))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.6)
+                        
+                        Text(block.formattedTimeRange)
+                            .font(.system(size: isSmallBlock ? 9 : 12, weight: .medium))
+                            .foregroundColor(subtextColorForBlock(block.type))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.6)
+                    }
+                    .padding(horizontalPadding)
+                }
             }
-            .padding(8)
-            .frame(width: 250, height: max(30, calculateBlockHeight(from: block.startTime, to: block.endTime)), alignment: .topLeading)
-            .background(Color.commitmentBlock)
-            .cornerRadius(8)
-            .shadow(radius: 2, x: 0, y: 1)
+            .frame(width: 320, height: blockHeight, alignment: isVerySmallBlock ? .leading : .topLeading)
+            .background(backgroundColorForBlock(block.type))
+            .overlay(
+                RoundedRectangle(cornerRadius: block.type == .empty ? 6 : 8)
+                    .strokeBorder(
+                        borderColorForBlock(block.type),
+                        style: StrokeStyle(
+                            lineWidth: block.type == .empty ? 1.5 : 0,
+                            dash: block.type == .empty ? [4, 2] : []
+                        )
+                    )
+            )
+            .cornerRadius(block.type == .empty ? 6 : 8)
+            .shadow(radius: block.type == .commitment ? 2 : 0, x: 0, y: 1)
+            .clipped()
             .offset(
                 x: 80,
-                y: calculateVerticalPosition(for: block.startTime) + 8
+                y: calculateVerticalPosition(for: block.startTime) + 10
             )
+            .zIndex(block.type == .empty ? 1 : 0)
+            .accessibilityLabel(accessibilityLabelForBlock(block))
+        }
+    }
+    
+    private func backgroundColorForBlock(_ type: TimeBlock.TimeBlockType) -> Color {
+        switch type {
+        case .commitment:
+            return Color.commitmentBlock
+        case .empty:
+            // More distinct gray with better contrast
+            return Color(UIColor.tertiarySystemGroupedBackground)
+        case .task:
+            return Color.green // Reserved for Story 2.3+
+        }
+    }
+    
+    private func borderColorForBlock(_ type: TimeBlock.TimeBlockType) -> Color {
+        switch type {
+        case .empty:
+            // Darker, more visible border for empty blocks
+            return Color(UIColor.systemGray)
+        default:
+            return Color.clear
+        }
+    }
+    
+    private func textColorForBlock(_ type: TimeBlock.TimeBlockType) -> Color {
+        switch type {
+        case .commitment:
+            return .white
+        case .empty:
+            // Darker text for better readability on gray background
+            return Color(UIColor.label)
+        case .task:
+            return .white
+        }
+    }
+    
+    private func subtextColorForBlock(_ type: TimeBlock.TimeBlockType) -> Color {
+        switch type {
+        case .commitment:
+            return .white.opacity(0.95)
+        case .empty:
+            // High contrast text for better readability
+            return Color(UIColor.label)
+        case .task:
+            return .white.opacity(0.95)
+        }
+    }
+    
+    private func accessibilityLabelForBlock(_ block: TimeBlock) -> String {
+        switch block.type {
+        case .commitment:
+            return "\(block.title) from \(block.formattedTimeRange)"
+        case .empty:
+            let duration = Int(block.duration / 60)
+            return "Available time slot from \(block.formattedTimeRange), duration \(duration) minutes"
+        case .task:
+            return "\(block.title) scheduled from \(block.formattedTimeRange)"
         }
     }
     

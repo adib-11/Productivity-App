@@ -148,7 +148,9 @@ final class DataRepositoryTests: XCTestCase {
     }
     
     func testUpdateCommitment_WithNilId_ThrowsError() async throws {
-        // Given
+        // Given - Set up authenticated user so we can reach the nil ID check
+        mockAuthManager.currentUser = User(id: "test-user-id", email: "test@example.com")
+        
         let commitment = FixedCommitment(
             id: nil,
             userId: "test-user-id",
@@ -335,7 +337,9 @@ final class DataRepositoryTests: XCTestCase {
     }
     
     func testUpdateTask_WithNilId_ThrowsError() async throws {
-        // Given
+        // Given - Set up authenticated user so we can reach the nil ID check
+        mockAuthManager.currentUser = User(id: "test-user-id", email: "test@example.com")
+        
         let task = Task(
             id: nil,
             userId: "test-user-id",

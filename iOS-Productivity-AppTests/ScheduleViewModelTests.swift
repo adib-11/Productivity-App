@@ -54,16 +54,18 @@ final class ScheduleViewModelTests: XCTestCase {
         // When: Load commitments
         await viewModel.loadCommitments()
         
-        // Then: Commitments are loaded and time blocks generated
+        // Then: Commitments are loaded and time blocks generated (including empty blocks)
         XCTAssertEqual(viewModel.commitments.count, 2)
-        XCTAssertEqual(viewModel.timeBlocks.count, 2)
+        // Time blocks now include empty slots: before, between, and after commitments
+        XCTAssertGreaterThanOrEqual(viewModel.timeBlocks.count, 2) // At least the 2 commitments
         XCTAssertNil(viewModel.errorMessage)
         XCTAssertFalse(viewModel.isLoading)
         
-        // Verify time blocks are correctly converted
-        XCTAssertEqual(viewModel.timeBlocks[0].title, "Morning Meeting")
-        XCTAssertEqual(viewModel.timeBlocks[0].type, .commitment)
-        XCTAssertEqual(viewModel.timeBlocks[1].title, "Lunch")
+        // Verify commitment blocks are present (filter to find them since empty blocks are included)
+        let commitmentBlocks = viewModel.timeBlocks.filter { $0.type == .commitment }
+        XCTAssertEqual(commitmentBlocks.count, 2)
+        XCTAssertEqual(commitmentBlocks[0].title, "Morning Meeting")
+        XCTAssertEqual(commitmentBlocks[1].title, "Lunch")
     }
     
     // MARK: - Test loadCommitments() error handling
@@ -101,16 +103,21 @@ final class ScheduleViewModelTests: XCTestCase {
         )
         
         viewModel.commitments = [commitment]
+        viewModel.currentDate = today // Set current date for free time calculation
         
         // When: Generate time blocks
         viewModel.generateTimeBlocks()
         
-        // Then: Time blocks are created
-        XCTAssertEqual(viewModel.timeBlocks.count, 1)
-        XCTAssertEqual(viewModel.timeBlocks[0].title, "Team Standup")
-        XCTAssertEqual(viewModel.timeBlocks[0].type, .commitment)
-        XCTAssertEqual(viewModel.timeBlocks[0].startTime, commitment.startTime)
-        XCTAssertEqual(viewModel.timeBlocks[0].endTime, commitment.endTime)
+        // Then: Time blocks are created (including empty blocks before and after)
+        XCTAssertGreaterThanOrEqual(viewModel.timeBlocks.count, 1) // At least the commitment
+        
+        // Find the commitment block
+        let commitmentBlocks = viewModel.timeBlocks.filter { $0.type == .commitment }
+        XCTAssertEqual(commitmentBlocks.count, 1)
+        XCTAssertEqual(commitmentBlocks[0].title, "Team Standup")
+        XCTAssertEqual(commitmentBlocks[0].type, .commitment)
+        XCTAssertEqual(commitmentBlocks[0].startTime, commitment.startTime)
+        XCTAssertEqual(commitmentBlocks[0].endTime, commitment.endTime)
     }
     
     // MARK: - Test getCurrentTimeOffset()
@@ -163,14 +170,7 @@ final class ScheduleViewModelTests: XCTestCase {
         // When: Start loading
         XCTAssertFalse(viewModel.isLoading)
         
-        let loadTask = Task {
-            await viewModel.loadCommitments()
-        }
-        
-        // Brief delay to check loading state
-        try await Task.sleep(nanoseconds: 10_000_000) // 10ms
-        
-        await loadTask.value
+        await viewModel.loadCommitments()
         
         // Then: Loading is complete
         XCTAssertFalse(viewModel.isLoading)
@@ -200,9 +200,12 @@ final class ScheduleViewModelTests: XCTestCase {
         // When: Load commitments
         await viewModel.loadCommitments()
         
-        // Then: Lists are empty but no error
+        // Then: Commitments are empty but time blocks include a full-day empty block
         XCTAssertTrue(viewModel.commitments.isEmpty)
-        XCTAssertTrue(viewModel.timeBlocks.isEmpty)
+        // With Story 2.2, empty schedules generate a full-day empty block
+        XCTAssertEqual(viewModel.timeBlocks.count, 1)
+        XCTAssertEqual(viewModel.timeBlocks[0].type, .empty)
+        XCTAssertEqual(viewModel.timeBlocks[0].title, "Available")
         XCTAssertNil(viewModel.errorMessage)
         XCTAssertFalse(viewModel.isLoading)
     }
@@ -257,4 +260,144 @@ final class ScheduleViewModelTests: XCTestCase {
         XCTAssertTrue(formattedRange.contains("10:30"))
         XCTAssertTrue(formattedRange.contains("AM"))
     }
+    
+    // MARK: - Test Free Time Integration (Story 2.2)
+    
+    func testCalculateFreeTime_WithCommitments() throws {
+        // Given: Commitments with gaps
+        let calendar = Calendar.current
+        let today = Date()
+        let startOfDay = calendar.startOfDay(for: today)
+        
+        let commitment1 = FixedCommitment(
+            id: "1",
+            userId: "test-user",
+            title: "Morning Meeting",
+            startTime: calendar.date(byAdding: .hour, value: 9, to: startOfDay)!,
+            endTime: calendar.date(byAdding: .hour, value: 10, to: startOfDay)!
+        )
+        
+        let commitment2 = FixedCommitment(
+            id: "2",
+            userId: "test-user",
+            title: "Afternoon Meeting",
+            startTime: calendar.date(byAdding: .hour, value: 14, to: startOfDay)!,
+            endTime: calendar.date(byAdding: .hour, value: 15, to: startOfDay)!
+        )
+        
+        viewModel.commitments = [commitment1, commitment2]
+        viewModel.currentDate = today
+        
+        // When: Calculate free time
+        viewModel.calculateFreeTime()
+        
+        // Then: Free time slots are populated
+        XCTAssertFalse(viewModel.freeTimeSlots.isEmpty)
+        // Should have 3 slots: before first, between, after last
+        XCTAssertEqual(viewModel.freeTimeSlots.count, 3)
+        
+        // Verify first slot is before first commitment (6 AM - 9 AM)
+        XCTAssertEqual(calendar.component(.hour, from: viewModel.freeTimeSlots[0].startTime), 6)
+        XCTAssertEqual(calendar.component(.hour, from: viewModel.freeTimeSlots[0].endTime), 9)
+    }
+    
+    func testCalculateFreeTime_NoCommitments() throws {
+        // Given: No commitments
+        viewModel.commitments = []
+        viewModel.currentDate = Date()
+        
+        // When: Calculate free time
+        viewModel.calculateFreeTime()
+        
+        // Then: Should have single full-day slot
+        XCTAssertEqual(viewModel.freeTimeSlots.count, 1)
+        
+        let calendar = Calendar.current
+        let slot = viewModel.freeTimeSlots[0]
+        
+        // Verify start time is 6 AM
+        XCTAssertEqual(calendar.component(.hour, from: slot.startTime), 6)
+        
+        // Verify end time is midnight (hour 0 of next day)
+        let endDay = calendar.component(.day, from: slot.endTime)
+        let startDay = calendar.component(.day, from: slot.startTime)
+        XCTAssertEqual(calendar.component(.hour, from: slot.endTime), 0) // Midnight = hour 0
+        XCTAssertEqual(endDay, startDay + 1) // Next day
+    }
+    
+    func testGenerateTimeBlocks_IncludesEmptyBlocks() throws {
+        // Given: One commitment
+        let calendar = Calendar.current
+        let today = Date()
+        let startOfDay = calendar.startOfDay(for: today)
+        
+        let commitment = FixedCommitment(
+            id: "1",
+            userId: "test-user",
+            title: "Lunch",
+            startTime: calendar.date(byAdding: .hour, value: 12, to: startOfDay)!,
+            endTime: calendar.date(byAdding: .hour, value: 13, to: startOfDay)!
+        )
+        
+        viewModel.commitments = [commitment]
+        viewModel.currentDate = today
+        
+        // When: Generate time blocks
+        viewModel.generateTimeBlocks()
+        
+        // Then: Time blocks include both commitment and empty blocks
+        XCTAssertGreaterThan(viewModel.timeBlocks.count, 1) // More than just the commitment
+        
+        // Should have 1 commitment block
+        let commitmentBlocks = viewModel.timeBlocks.filter { $0.type == .commitment }
+        XCTAssertEqual(commitmentBlocks.count, 1)
+        
+        // Should have empty blocks (before and after)
+        let emptyBlocks = viewModel.timeBlocks.filter { $0.type == .empty }
+        XCTAssertGreaterThan(emptyBlocks.count, 0)
+        
+        // Verify empty blocks have "Available" title
+        for emptyBlock in emptyBlocks {
+            XCTAssertEqual(emptyBlock.title, "Available")
+        }
+    }
+    
+    func testGenerateTimeBlocks_ChronologicalOrder() throws {
+        // Given: Multiple commitments in random order
+        let calendar = Calendar.current
+        let today = Date()
+        let startOfDay = calendar.startOfDay(for: today)
+        
+        let commitment1 = FixedCommitment(
+            id: "1",
+            userId: "test-user",
+            title: "Afternoon",
+            startTime: calendar.date(byAdding: .hour, value: 15, to: startOfDay)!,
+            endTime: calendar.date(byAdding: .hour, value: 16, to: startOfDay)!
+        )
+        
+        let commitment2 = FixedCommitment(
+            id: "2",
+            userId: "test-user",
+            title: "Morning",
+            startTime: calendar.date(byAdding: .hour, value: 9, to: startOfDay)!,
+            endTime: calendar.date(byAdding: .hour, value: 10, to: startOfDay)!
+        )
+        
+        viewModel.commitments = [commitment1, commitment2] // Out of order
+        viewModel.currentDate = today
+        
+        // When: Generate time blocks
+        viewModel.generateTimeBlocks()
+        
+        // Then: Time blocks are sorted chronologically
+        for i in 0..<(viewModel.timeBlocks.count - 1) {
+            XCTAssertLessThanOrEqual(
+                viewModel.timeBlocks[i].startTime,
+                viewModel.timeBlocks[i + 1].startTime,
+                "Time blocks should be in chronological order"
+            )
+        }
+    }
 }
+

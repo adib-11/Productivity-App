@@ -37,4 +37,14 @@ struct TimeBlock: Identifiable {
         self.endTime = endTime
         self.type = type
     }
+    
+    init(from freeTimeSlot: FreeTimeSlot) {
+        self.init(
+            id: freeTimeSlot.id,
+            title: "Available",
+            startTime: freeTimeSlot.startTime,
+            endTime: freeTimeSlot.endTime,
+            type: .empty
+        )
+    }
 }
