@@ -181,4 +181,21 @@ class MockDataRepository: DataRepository {
         }
         mockCommitments.removeAll { $0.id == commitmentId }
     }
+    
+    override func fetchCommitments(for date: Date) async throws -> [FixedCommitment] {
+        if shouldThrowError {
+            throw DataRepositoryError.fetchFailed
+        }
+        
+        // Filter commitments by date
+        let calendar = Calendar.current
+        let startOfDay = calendar.startOfDay(for: date)
+        guard let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) else {
+            return []
+        }
+        
+        return mockCommitments.filter { commitment in
+            commitment.startTime >= startOfDay && commitment.startTime < endOfDay
+        }.sorted { $0.startTime < $1.startTime }
+    }
 }

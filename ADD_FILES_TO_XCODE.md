@@ -1,110 +1,100 @@
-# How to Add New Files to Xcode Project
+# Adding New Files to Xcode Project
 
-The implementation created new Swift files that need to be added to your Xcode project.
+## Files That Need to Be Added to Xcode
 
-## Steps to Add Files:
+The following files were created but need to be manually added to the Xcode project:
 
-### 1. Open Your Project in Xcode
-- Open `iOS-Productivity-App.xcodeproj` in Xcode
+### Source Files (4 files):
+1. **TimeBlock.swift**
+   - Path: `iOS-Productivity-App/Core/Models/TimeBlock.swift`
+   - Target: iOS-Productivity-App
+   - Group: Core/Models
 
-### 2. Add Files to Project
+2. **ScheduleViewModel.swift**
+   - Path: `iOS-Productivity-App/Features/Schedule/ViewModels/ScheduleViewModel.swift`
+   - Target: iOS-Productivity-App
+   - Group: Features/Schedule/ViewModels
 
-For each file location below:
-1. Right-click the folder in Xcode's Project Navigator
+3. **TimelineView.swift**
+   - Path: `iOS-Productivity-App/Features/Schedule/Views/TimelineView.swift`
+   - Target: iOS-Productivity-App
+   - Group: Features/Schedule/Views
+
+### Test Files (1 file):
+4. **ScheduleViewModelTests.swift**
+   - Path: `iOS-Productivity-AppTests/ScheduleViewModelTests.swift`
+   - Target: iOS-Productivity-AppTests
+   - Group: iOS-Productivity-AppTests
+
+## Step-by-Step Instructions
+
+### Method 1: Drag and Drop (Recommended)
+
+1. **Open Xcode** with the project already open
+2. **Show Project Navigator** (Cmd+1)
+3. **Add TimeBlock.swift:**
+   - Locate the file in Finder: `iOS-Productivity-App/Core/Models/TimeBlock.swift`
+   - Drag it into the "Core/Models" folder in Xcode's Project Navigator
+   - In the dialog that appears:
+     - ✅ Check "Copy items if needed" (if it's not already in the right location)
+     - ✅ Check "Add to targets: iOS-Productivity-App"
+     - Click "Finish"
+
+4. **Add ScheduleViewModel.swift:**
+   - Locate: `iOS-Productivity-App/Features/Schedule/ViewModels/ScheduleViewModel.swift`
+   - Drag into "Features/Schedule/ViewModels" folder
+   - ✅ Add to target: iOS-Productivity-App
+
+5. **Add TimelineView.swift:**
+   - Locate: `iOS-Productivity-App/Features/Schedule/Views/TimelineView.swift`
+   - Drag into "Features/Schedule/Views" folder
+   - ✅ Add to target: iOS-Productivity-App
+
+6. **Add ScheduleViewModelTests.swift:**
+   - Locate: `iOS-Productivity-AppTests/ScheduleViewModelTests.swift`
+   - Drag into "iOS-Productivity-AppTests" folder
+   - ✅ Add to target: iOS-Productivity-AppTests
+
+### Method 2: Right-Click Add Files
+
+1. Right-click on the appropriate group in Project Navigator
 2. Select "Add Files to 'iOS-Productivity-App'..."
 3. Navigate to the file location
-4. Select the file(s)
-5. Make sure "Copy items if needed" is UNCHECKED (files are already in place)
-6. Make sure "Add to targets: iOS-Productivity-App" is CHECKED
-7. Click "Add"
+4. Select the file
+5. Ensure correct target is checked
+6. Click "Add"
 
-### Files to Add:
+## Verification
 
-#### Core/Models/ folder:
-- `FixedCommitment.swift`
-  - Location: `iOS-Productivity-App/Core/Models/FixedCommitment.swift`
+After adding the files:
 
-#### Core/Services/ folder:
-- `DataRepository.swift`
-  - Location: `iOS-Productivity-App/Core/Services/DataRepository.swift`
+1. **Build the project** (Cmd+B)
+   - Should complete with no errors
+   
+2. **Check file targets:**
+   - Select each file in Project Navigator
+   - In File Inspector (right panel), verify "Target Membership" is correct
+   
+3. **Run tests** (Cmd+U)
+   - All tests should run successfully
 
-#### Features/Schedule/ folder:
-You may need to create "Schedule" group first:
-1. Right-click "Features" folder
-2. Select "New Group"
-3. Name it "Schedule"
-4. Create "ViewModels" and "Views" subgroups
+## Current Build Errors
 
-Then add:
-- **ViewModels subfolder:**
-  - `CommitmentViewModel.swift`
-    - Location: `iOS-Productivity-App/Features/Schedule/ViewModels/CommitmentViewModel.swift`
+The errors you're seeing are because Xcode can't find the types:
+- `ScheduleViewModel` - needs ScheduleViewModel.swift added
+- `TimelineView` - needs TimelineView.swift added
+- These files reference `TimeBlock` - needs TimeBlock.swift added
 
-- **Views subfolder:**
-  - `ManageCommitmentsView.swift`
-    - Location: `iOS-Productivity-App/Features/Schedule/Views/ManageCommitmentsView.swift`
-  - `CommitmentFormView.swift`
-    - Location: `iOS-Productivity-App/Features/Schedule/Views/CommitmentFormView.swift`
+Once all files are added to the Xcode project, the build errors will be resolved.
 
-#### Test target (iOS-Productivity-AppTests):
-Right-click the test folder and add:
-- `CommitmentViewModelTests.swift`
-  - Location: `iOS-Productivity-AppTests/CommitmentViewModelTests.swift`
-  - Target: iOS-Productivity-AppTests (NOT main app)
-- `DataRepositoryTests.swift`
-  - Location: `iOS-Productivity-AppTests/DataRepositoryTests.swift`
-  - Target: iOS-Productivity-AppTests (NOT main app)
+## Quick Command to Verify Files Exist
 
-### 3. Verify Files Are Added
-
-After adding all files:
-1. Build the project (⌘+B)
-2. All errors should be resolved
-3. You should see all new files in the Project Navigator with proper folder structure
-
-### Alternative: Use Finder to Add Files
-
-If you prefer:
-1. In Xcode, select the target folder in Project Navigator
-2. Open Finder to the file location
-3. Drag and drop the file from Finder into Xcode's Project Navigator
-4. In the dialog, ensure:
-   - "Copy items if needed" is UNCHECKED
-   - Correct target is selected
-   - Click "Finish"
-
-## Troubleshooting
-
-**If files still show errors after adding:**
-1. Clean Build Folder: Product > Clean Build Folder (⌘+Shift+K)
-2. Restart Xcode
-3. Rebuild project (⌘+B)
-
-**If you see duplicate files:**
-- Delete the duplicate reference (select file, press Delete, choose "Remove Reference")
-- Only keep the one in the correct folder
-
-## Expected Project Structure After Adding Files:
-
-```
-iOS-Productivity-App/
-├── App/
-│   └── App.swift (modified)
-├── Core/
-│   ├── Models/
-│   │   ├── User.swift (existing)
-│   │   └── FixedCommitment.swift (NEW)
-│   └── Services/
-│       ├── AuthManager.swift (existing)
-│       └── DataRepository.swift (NEW)
-└── Features/
-    ├── Authentication/ (existing)
-    └── Schedule/
-        ├── ViewModels/
-        │   └── CommitmentViewModel.swift (NEW)
-        └── Views/
-            ├── ManageCommitmentsView.swift (NEW)
-            └── CommitmentFormView.swift (NEW)
+Run this in terminal to confirm all files are present:
+```bash
+ls -la iOS-Productivity-App/Core/Models/TimeBlock.swift
+ls -la iOS-Productivity-App/Features/Schedule/ViewModels/ScheduleViewModel.swift
+ls -la iOS-Productivity-App/Features/Schedule/Views/TimelineView.swift
+ls -la iOS-Productivity-AppTests/ScheduleViewModelTests.swift
 ```
 
-Once files are added, all compilation errors will be resolved!
+All should show file details if created successfully.

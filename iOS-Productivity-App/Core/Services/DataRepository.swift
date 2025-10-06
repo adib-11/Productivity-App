@@ -78,6 +78,33 @@ class DataRepository: ObservableObject {
         }
     }
     
+    func fetchCommitments(for date: Date) async throws -> [FixedCommitment] {
+        guard let userId = authManager.currentUser?.id else {
+            throw DataRepositoryError.notAuthenticated
+        }
+        
+        // Calculate date range (start of day to start of next day)
+        let calendar = Calendar.current
+        let startOfDay = calendar.startOfDay(for: date)
+        guard let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) else {
+            throw DataRepositoryError.fetchFailed
+        }
+        
+        do {
+            let snapshot = try await db.collection("users/\(userId)/fixedCommitments")
+                .whereField("startTime", isGreaterThanOrEqualTo: startOfDay)
+                .whereField("startTime", isLessThan: endOfDay)
+                .order(by: "startTime", descending: false)
+                .getDocuments()
+            
+            return snapshot.documents.compactMap { doc in
+                try? doc.data(as: FixedCommitment.self)
+            }
+        } catch {
+            throw DataRepositoryError.fetchFailed
+        }
+    }
+    
     func updateCommitment(_ commitment: FixedCommitment) async throws {
         guard let userId = authManager.currentUser?.id else {
             throw DataRepositoryError.notAuthenticated

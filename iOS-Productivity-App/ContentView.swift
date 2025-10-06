@@ -13,7 +13,7 @@ struct ContentView: View {
     
     var body: some View {
         TabView {
-            TodayView()
+            TodayView(dataRepository: dataRepository)
                 .tabItem {
                     Label("Today", systemImage: "calendar")
                 }
@@ -32,31 +32,34 @@ struct ContentView: View {
 }
 
 struct TodayView: View {
-    @EnvironmentObject var authManager: AuthManager
+    @EnvironmentObject var dataRepository: DataRepository
+    @StateObject private var scheduleViewModel: ScheduleViewModel
+    
+    init(dataRepository: DataRepository) {
+        _scheduleViewModel = StateObject(wrappedValue: ScheduleViewModel(repository: dataRepository))
+    }
     
     var body: some View {
         NavigationStack {
-            VStack(spacing: 20) {
-                Image(systemName: "checkmark.circle.fill")
-                    .imageScale(.large)
-                    .foregroundStyle(.green)
-                    .font(.system(size: 60))
-                
-                Text("Welcome to Productivity App!")
-                    .font(.headline)
-                
-                if let user = authManager.currentUser {
-                    Text("Logged in as:")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    
-                    Text(user.email)
-                        .font(.subheadline)
-                        .fontWeight(.medium)
+            TimelineView(viewModel: scheduleViewModel)
+                .navigationTitle("Today")
+                .toolbar {
+                    ToolbarItem(placement: .principal) {
+                        Text(formatDate(scheduleViewModel.currentDate))
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    }
                 }
-            }
-            .navigationTitle("Today")
+                .task {
+                    await scheduleViewModel.loadCommitments()
+                }
         }
+    }
+    
+    private func formatDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        return formatter.string(from: date)
     }
 }
 

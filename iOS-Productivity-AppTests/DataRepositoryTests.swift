@@ -448,6 +448,7 @@ final class DataRepositoryTests: XCTestCase {
             return
         }
         
+        
         // When - Toggle completion
         fetchedTask.isCompleted = true
         try await repository.updateTask(fetchedTask)
@@ -456,6 +457,189 @@ final class DataRepositoryTests: XCTestCase {
         let updatedTasks = try await repository.fetchTasks()
         let completedTask = updatedTasks.first { $0.id == fetchedTask.id }
         XCTAssertEqual(completedTask?.isCompleted, true)
+    }
+    
+    // MARK: - Fetch Commitments by Date Tests
+    
+    func testFetchCommitmentsForDate_WithSpecificDate_ReturnsCommitmentsForThatDay() async throws {
+        guard useEmulator else {
+            throw XCTSkip("Test requires Firebase Emulator")
+        }
+        
+        // Given - User is authenticated
+        let testUser = try await mockAuthManager.signUp(email: "test@example.com", password: "password123")
+        mockAuthManager.currentUser = testUser
+        
+        // Create commitments for today
+        let calendar = Calendar.current
+        let today = Date()
+        let startOfDay = calendar.startOfDay(for: today)
+        
+        let todayCommitment = FixedCommitment(
+            id: nil,
+            userId: testUser.id,
+            title: "Today's Meeting",
+            startTime: calendar.date(byAdding: .hour, value: 9, to: startOfDay)!,
+            endTime: calendar.date(byAdding: .hour, value: 10, to: startOfDay)!
+        )
+        
+        // Create commitment for tomorrow
+        let tomorrow = calendar.date(byAdding: .day, value: 1, to: today)!
+        let tomorrowStart = calendar.startOfDay(for: tomorrow)
+        
+        let tomorrowCommitment = FixedCommitment(
+            id: nil,
+            userId: testUser.id,
+            title: "Tomorrow's Meeting",
+            startTime: calendar.date(byAdding: .hour, value: 9, to: tomorrowStart)!,
+            endTime: calendar.date(byAdding: .hour, value: 10, to: tomorrowStart)!
+        )
+        
+        try await repository.createCommitment(todayCommitment)
+        try await repository.createCommitment(tomorrowCommitment)
+        
+        // When - Fetch commitments for today
+        let todayCommitments = try await repository.fetchCommitments(for: today)
+        
+        // Then - Only today's commitment is returned
+        XCTAssertEqual(todayCommitments.count, 1)
+        XCTAssertEqual(todayCommitments.first?.title, "Today's Meeting")
+    }
+    
+    func testFetchCommitmentsForDate_WithNoCommitments_ReturnsEmptyArray() async throws {
+        guard useEmulator else {
+            throw XCTSkip("Test requires Firebase Emulator")
+        }
+        
+        // Given - User is authenticated but has no commitments
+        let testUser = try await mockAuthManager.signUp(email: "test@example.com", password: "password123")
+        mockAuthManager.currentUser = testUser
+        
+        // When - Fetch commitments for today
+        let commitments = try await repository.fetchCommitments(for: Date())
+        
+        // Then - Empty array is returned
+        XCTAssertTrue(commitments.isEmpty)
+    }
+    
+    func testFetchCommitmentsForDate_FiltersOutOtherDays() async throws {
+        guard useEmulator else {
+            throw XCTSkip("Test requires Firebase Emulator")
+        }
+        
+        // Given - User with commitments on multiple days
+        let testUser = try await mockAuthManager.signUp(email: "test@example.com", password: "password123")
+        mockAuthManager.currentUser = testUser
+        
+        let calendar = Calendar.current
+        let today = Date()
+        let yesterday = calendar.date(byAdding: .day, value: -1, to: today)!
+        let tomorrow = calendar.date(byAdding: .day, value: 1, to: today)!
+        
+        let todayStart = calendar.startOfDay(for: today)
+        let yesterdayStart = calendar.startOfDay(for: yesterday)
+        let tomorrowStart = calendar.startOfDay(for: tomorrow)
+        
+        // Create commitments for each day
+        let yesterdayCommitment = FixedCommitment(
+            id: nil,
+            userId: testUser.id,
+            title: "Yesterday",
+            startTime: calendar.date(byAdding: .hour, value: 9, to: yesterdayStart)!,
+            endTime: calendar.date(byAdding: .hour, value: 10, to: yesterdayStart)!
+        )
+        
+        let todayCommitment = FixedCommitment(
+            id: nil,
+            userId: testUser.id,
+            title: "Today",
+            startTime: calendar.date(byAdding: .hour, value: 9, to: todayStart)!,
+            endTime: calendar.date(byAdding: .hour, value: 10, to: todayStart)!
+        )
+        
+        let tomorrowCommitment = FixedCommitment(
+            id: nil,
+            userId: testUser.id,
+            title: "Tomorrow",
+            startTime: calendar.date(byAdding: .hour, value: 9, to: tomorrowStart)!,
+            endTime: calendar.date(byAdding: .hour, value: 10, to: tomorrowStart)!
+        )
+        
+        try await repository.createCommitment(yesterdayCommitment)
+        try await repository.createCommitment(todayCommitment)
+        try await repository.createCommitment(tomorrowCommitment)
+        
+        // When - Fetch commitments for today
+        let todayCommitments = try await repository.fetchCommitments(for: today)
+        
+        // Then - Only today's commitment is returned
+        XCTAssertEqual(todayCommitments.count, 1)
+        XCTAssertEqual(todayCommitments.first?.title, "Today")
+    }
+    
+    func testFetchCommitmentsForDate_WithMultipleCommitmentsSameDay_ReturnsSortedByStartTime() async throws {
+        guard useEmulator else {
+            throw XCTSkip("Test requires Firebase Emulator")
+        }
+        
+        // Given - Multiple commitments on the same day
+        let testUser = try await mockAuthManager.signUp(email: "test@example.com", password: "password123")
+        mockAuthManager.currentUser = testUser
+        
+        let calendar = Calendar.current
+        let today = Date()
+        let startOfDay = calendar.startOfDay(for: today)
+        
+        let morningCommitment = FixedCommitment(
+            id: nil,
+            userId: testUser.id,
+            title: "Morning Meeting",
+            startTime: calendar.date(byAdding: .hour, value: 9, to: startOfDay)!,
+            endTime: calendar.date(byAdding: .hour, value: 10, to: startOfDay)!
+        )
+        
+        let afternoonCommitment = FixedCommitment(
+            id: nil,
+            userId: testUser.id,
+            title: "Afternoon Meeting",
+            startTime: calendar.date(byAdding: .hour, value: 14, to: startOfDay)!,
+            endTime: calendar.date(byAdding: .hour, value: 15, to: startOfDay)!
+        )
+        
+        let lunchCommitment = FixedCommitment(
+            id: nil,
+            userId: testUser.id,
+            title: "Lunch",
+            startTime: calendar.date(byAdding: .hour, value: 12, to: startOfDay)!,
+            endTime: calendar.date(byAdding: .hour, value: 13, to: startOfDay)!
+        )
+        
+        // Create in random order
+        try await repository.createCommitment(afternoonCommitment)
+        try await repository.createCommitment(morningCommitment)
+        try await repository.createCommitment(lunchCommitment)
+        
+        // When - Fetch commitments for today
+        let commitments = try await repository.fetchCommitments(for: today)
+        
+        // Then - Commitments are sorted by start time
+        XCTAssertEqual(commitments.count, 3)
+        XCTAssertEqual(commitments[0].title, "Morning Meeting")
+        XCTAssertEqual(commitments[1].title, "Lunch")
+        XCTAssertEqual(commitments[2].title, "Afternoon Meeting")
+    }
+    
+    func testFetchCommitmentsForDate_WithUnauthenticatedUser_ThrowsError() async throws {
+        // Given - No authenticated user
+        mockAuthManager.currentUser = nil
+        
+        // When/Then - Fetch throws notAuthenticated error
+        do {
+            _ = try await repository.fetchCommitments(for: Date())
+            XCTFail("Expected notAuthenticated error")
+        } catch let error as DataRepositoryError {
+            XCTAssertEqual(error, DataRepositoryError.notAuthenticated)
+        }
     }
 }
 
@@ -480,3 +664,4 @@ final class DataRepositoryTests: XCTestCase {
  Note: Integration tests that require authentication are marked as XCTSkip
  when emulator is not running. This allows unit tests to run independently.
  */
+
