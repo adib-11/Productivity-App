@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 56;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -11,10 +11,35 @@
 		003 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 004 /* ContentView.swift */; };
 		005 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 006 /* Assets.xcassets */; };
 		C061D91B2E92E19B00712682 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = C061D91A2E92E19B00712682 /* GoogleService-Info.plist */; };
+		C061D91E2E92F10600712682 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = C061D91D2E92F10600712682 /* User.swift */; };
+		C061D9202E92F11F00712682 /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C061D91F2E92F11F00712682 /* AuthManager.swift */; };
+		C061D9222E92F13700712682 /* AuthViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C061D9212E92F13700712682 /* AuthViewModel.swift */; };
+		C061D9262E92F16300712682 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C061D9242E92F16300712682 /* LoginView.swift */; };
+		C061D9272E92F16300712682 /* SignUpView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C061D9252E92F16300712682 /* SignUpView.swift */; };
+		C061D9282E92F16300712682 /* AuthenticationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C061D9232E92F16300712682 /* AuthenticationView.swift */; };
+		C061D9502E93961500712682 /* FixedCommitment.swift in Sources */ = {isa = PBXBuildFile; fileRef = C061D94F2E93961500712682 /* FixedCommitment.swift */; };
+		C061D9522E93962100712682 /* DataRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = C061D9512E93962100712682 /* DataRepository.swift */; };
+		C061D9542E93967400712682 /* CommitmentViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C061D9532E93967400712682 /* CommitmentViewModel.swift */; };
+		C061D9572E93968600712682 /* CommitmentFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C061D9552E93968600712682 /* CommitmentFormView.swift */; };
+		C061D9582E93968600712682 /* ManageCommitmentsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C061D9562E93968600712682 /* ManageCommitmentsView.swift */; };
+		C061D95C2E93CB9800712682 /* Task.swift in Sources */ = {isa = PBXBuildFile; fileRef = C061D95B2E93CB9800712682 /* Task.swift */; };
+		C061D95E2E93CBC100712682 /* TaskViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C061D95D2E93CBC100712682 /* TaskViewModel.swift */; };
+		C061D9612E93CBDD00712682 /* TaskFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C061D95F2E93CBDD00712682 /* TaskFormView.swift */; };
+		C061D9622E93CBDD00712682 /* TaskInboxView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C061D9602E93CBDD00712682 /* TaskInboxView.swift */; };
 		F001 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = F002 /* FirebaseAuth */; };
 		F003 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = F004 /* FirebaseFirestore */; };
 		F005 /* FirebaseFirestoreSwift in Frameworks */ = {isa = PBXBuildFile; productRef = F006 /* FirebaseFirestoreSwift */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		C061D9422E92F9D100712682 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 031 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 027;
+			remoteInfo = "iOS-Productivity-App";
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		002 /* App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App.swift; sourceTree = "<group>"; };
@@ -22,7 +47,27 @@
 		006 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		007 /* iOS-Productivity-App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "iOS-Productivity-App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		C061D91A2E92E19B00712682 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		C061D91D2E92F10600712682 /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
+		C061D91F2E92F11F00712682 /* AuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthManager.swift; sourceTree = "<group>"; };
+		C061D9212E92F13700712682 /* AuthViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthViewModel.swift; sourceTree = "<group>"; };
+		C061D9232E92F16300712682 /* AuthenticationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationView.swift; sourceTree = "<group>"; };
+		C061D9242E92F16300712682 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
+		C061D9252E92F16300712682 /* SignUpView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignUpView.swift; sourceTree = "<group>"; };
+		C061D93E2E92F9D100712682 /* iOS-Productivity-AppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "iOS-Productivity-AppTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		C061D94F2E93961500712682 /* FixedCommitment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FixedCommitment.swift; sourceTree = "<group>"; };
+		C061D9512E93962100712682 /* DataRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataRepository.swift; sourceTree = "<group>"; };
+		C061D9532E93967400712682 /* CommitmentViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommitmentViewModel.swift; sourceTree = "<group>"; };
+		C061D9552E93968600712682 /* CommitmentFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommitmentFormView.swift; sourceTree = "<group>"; };
+		C061D9562E93968600712682 /* ManageCommitmentsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManageCommitmentsView.swift; sourceTree = "<group>"; };
+		C061D95B2E93CB9800712682 /* Task.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Task.swift; sourceTree = "<group>"; };
+		C061D95D2E93CBC100712682 /* TaskViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskViewModel.swift; sourceTree = "<group>"; };
+		C061D95F2E93CBDD00712682 /* TaskFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskFormView.swift; sourceTree = "<group>"; };
+		C061D9602E93CBDD00712682 /* TaskInboxView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskInboxView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		C061D93F2E92F9D100712682 /* iOS-Productivity-AppTests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = "iOS-Productivity-AppTests"; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		008 /* Frameworks */ = {
@@ -35,6 +80,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		C061D93B2E92F9D100712682 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -43,6 +95,7 @@
 			children = (
 				F100 /* Firebase */,
 				010 /* iOS-Productivity-App */,
+				C061D93F2E92F9D100712682 /* iOS-Productivity-AppTests */,
 				011 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -62,6 +115,7 @@
 			isa = PBXGroup;
 			children = (
 				007 /* iOS-Productivity-App.app */,
+				C061D93E2E92F9D100712682 /* iOS-Productivity-AppTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -98,6 +152,9 @@
 		015 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				C061D95B2E93CB9800712682 /* Task.swift */,
+				C061D94F2E93961500712682 /* FixedCommitment.swift */,
+				C061D91D2E92F10600712682 /* User.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -105,6 +162,8 @@
 		016 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				C061D9512E93962100712682 /* DataRepository.swift */,
+				C061D91F2E92F11F00712682 /* AuthManager.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -146,6 +205,9 @@
 		021 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				C061D9232E92F16300712682 /* AuthenticationView.swift */,
+				C061D9242E92F16300712682 /* LoginView.swift */,
+				C061D9252E92F16300712682 /* SignUpView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -153,6 +215,7 @@
 		022 /* ViewModels */ = {
 			isa = PBXGroup;
 			children = (
+				C061D9212E92F13700712682 /* AuthViewModel.swift */,
 			);
 			path = ViewModels;
 			sourceTree = "<group>";
@@ -160,6 +223,8 @@
 		023 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				C061D9552E93968600712682 /* CommitmentFormView.swift */,
+				C061D9562E93968600712682 /* ManageCommitmentsView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -167,6 +232,7 @@
 		024 /* ViewModels */ = {
 			isa = PBXGroup;
 			children = (
+				C061D9532E93967400712682 /* CommitmentViewModel.swift */,
 			);
 			path = ViewModels;
 			sourceTree = "<group>";
@@ -174,6 +240,8 @@
 		025 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				C061D95F2E93CBDD00712682 /* TaskFormView.swift */,
+				C061D9602E93CBDD00712682 /* TaskInboxView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -181,6 +249,7 @@
 		026 /* ViewModels */ = {
 			isa = PBXGroup;
 			children = (
+				C061D95D2E93CBC100712682 /* TaskViewModel.swift */,
 			);
 			path = ViewModels;
 			sourceTree = "<group>";
@@ -218,6 +287,29 @@
 			productReference = 007 /* iOS-Productivity-App.app */;
 			productType = "com.apple.product-type.application";
 		};
+		C061D93D2E92F9D100712682 /* iOS-Productivity-AppTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C061D9442E92F9D100712682 /* Build configuration list for PBXNativeTarget "iOS-Productivity-AppTests" */;
+			buildPhases = (
+				C061D93A2E92F9D100712682 /* Sources */,
+				C061D93B2E92F9D100712682 /* Frameworks */,
+				C061D93C2E92F9D100712682 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				C061D9432E92F9D100712682 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				C061D93F2E92F9D100712682 /* iOS-Productivity-AppTests */,
+			);
+			name = "iOS-Productivity-AppTests";
+			packageProductDependencies = (
+			);
+			productName = "iOS-Productivity-AppTests";
+			productReference = C061D93E2E92F9D100712682 /* iOS-Productivity-AppTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -225,11 +317,15 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 1500;
+				LastSwiftUpdateCheck = 2600;
 				LastUpgradeCheck = 2600;
 				TargetAttributes = {
 					027 = {
 						CreatedOnToolsVersion = 15.0;
+					};
+					C061D93D2E92F9D100712682 = {
+						CreatedOnToolsVersion = 26.0.1;
+						TestTargetID = 027;
 					};
 				};
 			};
@@ -250,6 +346,7 @@
 			projectRoot = "";
 			targets = (
 				027 /* iOS-Productivity-App */,
+				C061D93D2E92F9D100712682 /* iOS-Productivity-AppTests */,
 			);
 		};
 /* End PBXProject section */
@@ -264,6 +361,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		C061D93C2E92F9D100712682 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -271,12 +375,42 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C061D9222E92F13700712682 /* AuthViewModel.swift in Sources */,
+				C061D9522E93962100712682 /* DataRepository.swift in Sources */,
 				003 /* ContentView.swift in Sources */,
+				C061D9502E93961500712682 /* FixedCommitment.swift in Sources */,
+				C061D9202E92F11F00712682 /* AuthManager.swift in Sources */,
+				C061D9572E93968600712682 /* CommitmentFormView.swift in Sources */,
+				C061D9582E93968600712682 /* ManageCommitmentsView.swift in Sources */,
 				001 /* App.swift in Sources */,
+				C061D9262E92F16300712682 /* LoginView.swift in Sources */,
+				C061D9272E92F16300712682 /* SignUpView.swift in Sources */,
+				C061D9542E93967400712682 /* CommitmentViewModel.swift in Sources */,
+				C061D9612E93CBDD00712682 /* TaskFormView.swift in Sources */,
+				C061D9622E93CBDD00712682 /* TaskInboxView.swift in Sources */,
+				C061D9282E92F16300712682 /* AuthenticationView.swift in Sources */,
+				C061D95C2E93CB9800712682 /* Task.swift in Sources */,
+				C061D95E2E93CBC100712682 /* TaskViewModel.swift in Sources */,
+				C061D91E2E92F10600712682 /* User.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C061D93A2E92F9D100712682 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		C061D9432E92F9D100712682 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 027 /* iOS-Productivity-App */;
+			targetProxy = C061D9422E92F9D100712682 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		033 /* Debug */ = {
@@ -462,6 +596,50 @@
 			};
 			name = Release;
 		};
+		C061D9452E92F9D100712682 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 4UTR8F2W8J;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.productivityapp.iOS-Productivity-App.iOS-Productivity-AppTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/iOS-Productivity-App.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/iOS-Productivity-App";
+			};
+			name = Debug;
+		};
+		C061D9462E92F9D100712682 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 4UTR8F2W8J;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.productivityapp.iOS-Productivity-App.iOS-Productivity-AppTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/iOS-Productivity-App.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/iOS-Productivity-App";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -479,6 +657,15 @@
 			buildConfigurations = (
 				033 /* Debug */,
 				034 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C061D9442E92F9D100712682 /* Build configuration list for PBXNativeTarget "iOS-Productivity-AppTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C061D9452E92F9D100712682 /* Debug */,
+				C061D9462E92F9D100712682 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

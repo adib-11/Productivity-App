@@ -6,70 +6,106 @@
 //
 
 import SwiftUI
-import FirebaseAuth
-import FirebaseFirestore
 
 struct ContentView: View {
-    @State private var firebaseStatus = "Checking Firebase services..."
+    @EnvironmentObject var authManager: AuthManager
+    @EnvironmentObject var dataRepository: DataRepository
     
     var body: some View {
-        VStack(spacing: 20) {
-            Image(systemName: "flame.fill")
-                .imageScale(.large)
-                .foregroundStyle(.orange)
-                .font(.system(size: 60))
+        TabView {
+            TodayView()
+                .tabItem {
+                    Label("Today", systemImage: "calendar")
+                }
             
-            Text("Firebase Integration Test")
-                .font(.headline)
+            TaskInboxView(dataRepository: dataRepository)
+                .tabItem {
+                    Label("Tasks", systemImage: "tray.fill")
+                }
             
-            Text(firebaseStatus)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-                .padding()
-        }
-        .padding()
-        .onAppear {
-            verifyFirebaseServices()
+            SettingsView()
+                .tabItem {
+                    Label("Settings", systemImage: "gear")
+                }
         }
     }
+}
+
+struct TodayView: View {
+    @EnvironmentObject var authManager: AuthManager
     
-    private func verifyFirebaseServices() {
-        var status: [String] = []
-        
-        // Check Firebase Auth
-        if Auth.auth().app != nil {
-            status.append("✅ Authentication: Ready")
-        } else {
-            status.append("❌ Authentication: Not configured")
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 20) {
+                Image(systemName: "checkmark.circle.fill")
+                    .imageScale(.large)
+                    .foregroundStyle(.green)
+                    .font(.system(size: 60))
+                
+                Text("Welcome to Productivity App!")
+                    .font(.headline)
+                
+                if let user = authManager.currentUser {
+                    Text("Logged in as:")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    
+                    Text(user.email)
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                }
+            }
+            .navigationTitle("Today")
         }
-        
-        // Check Firestore
-        let db = Firestore.firestore()
-        if db.app != nil {
-            status.append("✅ Firestore: Ready")
-            
-            // Test Firestore write/read
-            let testRef = db.collection("_test").document("verification")
-            testRef.setData(["timestamp": Date(), "test": true]) { error in
-                if let error = error {
-                    DispatchQueue.main.async {
-                        firebaseStatus = status.joined(separator: "\n") + "\n⚠️ Firestore Write Test: Failed - \(error.localizedDescription)"
+    }
+}
+
+struct SettingsView: View {
+    @EnvironmentObject var authManager: AuthManager
+    @EnvironmentObject var dataRepository: DataRepository
+    
+    var body: some View {
+        NavigationStack {
+            List {
+                Section("Schedule Management") {
+                    NavigationLink {
+                        ManageCommitmentsView(repository: dataRepository)
+                    } label: {
+                        Label("Manage Fixed Commitments", systemImage: "calendar.badge.clock")
                     }
-                } else {
-                    DispatchQueue.main.async {
-                        firebaseStatus = status.joined(separator: "\n") + "\n✅ Firestore Write Test: Success"
+                }
+                
+                Section("Account") {
+                    if let user = authManager.currentUser {
+                        HStack {
+                            Text("Email")
+                            Spacer()
+                            Text(user.email)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    
+                    Button(role: .destructive) {
+                        _Concurrency.Task {
+                            do {
+                                try authManager.signOut()
+                            } catch {
+                                // Error is already handled by AuthManager
+                                // and will update auth state appropriately
+                            }
+                        }
+                    } label: {
+                        Text("Sign Out")
                     }
                 }
             }
-        } else {
-            status.append("❌ Firestore: Not configured")
+            .navigationTitle("Settings")
         }
-        
-        firebaseStatus = status.joined(separator: "\n")
     }
 }
 
 #Preview {
     ContentView()
+        .environmentObject(AuthManager())
+        .environmentObject(DataRepository(authManager: AuthManager()))
 }

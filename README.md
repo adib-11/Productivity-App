@@ -17,13 +17,19 @@ iOS-Productivity-App/
 │
 ├── Core/
 │   ├── Models/                 # Data structures
+│   │   └── User.swift          # User model
 │   ├── Services/               # Backend logic (Repository, Engine)
+│   │   └── AuthManager.swift   # Authentication service
 │   └── Utils/                  # Helper functions
 │
 └── Features/                   # Feature-specific UI and logic
     ├── Authentication/
     │   ├── Views/
+    │   │   ├── AuthenticationView.swift  # Root auth view
+    │   │   ├── LoginView.swift           # Login screen
+    │   │   └── SignUpView.swift          # Registration screen
     │   └── ViewModels/
+    │       └── AuthViewModel.swift       # Auth UI state management
     ├── Schedule/
     │   ├── Views/
     │   └── ViewModels/
@@ -91,6 +97,53 @@ If you're setting up this project for the first time:
 
 The `GoogleService-Info.plist` file in this repository is for the development environment. For production deployments, use a separate Firebase project with appropriate security rules.
 
+## Firebase Emulator (Local Testing)
+
+The project includes Firebase Emulator Suite configuration for local testing without affecting production data.
+
+### Setup
+
+The emulator configuration is already set up in `firebase.json`. To use it:
+
+1. **Install Firebase CLI** (if not already installed):
+   ```bash
+   npm install -g firebase-tools
+   ```
+
+2. **Start the Emulator:**
+   ```bash
+   cd iOS-Productivity-App
+   firebase emulators:start
+   ```
+
+3. **Access Emulator UI:**
+   - Open http://localhost:4000 in your browser
+   - Firestore data is visible and manageable through the UI
+   - Firestore API runs on localhost:8080
+
+### Using Emulator in Tests
+
+Integration tests can be configured to use the emulator:
+
+```swift
+// In test setUp()
+let settings = Firestore.firestore().settings
+settings.host = "localhost:8080"
+settings.isSSLEnabled = false
+Firestore.firestore().settings = settings
+```
+
+See `DataRepositoryTests.swift` for example implementation.
+
+### Benefits
+
+- Test CRUD operations without affecting production data
+- Fast local database operations
+- Easy data inspection and debugging
+- No Firebase quota consumption during testing
+
+**Important:** Emulator data is not persisted between restarts and should only be used for testing.
+
 ## Getting Started
 
 1. Clone the repository
@@ -100,10 +153,92 @@ The `GoogleService-Info.plist` file in this repository is for the development en
 5. Select your target device or simulator
 6. Build and run the project (⌘+R)
 
+## Authentication
+
+The app uses Firebase Authentication with email/password sign-in.
+
+### Authentication Architecture
+
+The authentication system follows a service-layer pattern:
+
+- **AuthManager (Service Layer):** Manages all Firebase Auth SDK interactions
+  - Handles sign-up, sign-in, and sign-out operations
+  - Implements auth state listener for automatic session persistence
+  - Maps Firebase User objects to app's User model
+  - Conforms to `ObservableObject` for SwiftUI reactivity
+
+- **AuthViewModel (UI Layer):** Manages authentication view state
+  - Handles form input validation
+  - Maps Firebase errors to user-friendly messages
+  - Provides loading states for async operations
+  - Delegates authentication operations to AuthManager
+
+- **User Model:** Lightweight representation of authenticated user
+  - Contains: `id` (Firebase UID) and `email`
+  - Primary user record is managed by Firebase Authentication
+
+### Session Persistence
+
+Firebase Auth SDK automatically handles session persistence via iOS Keychain:
+- Users remain logged in across app launches
+- No manual token management required
+- Auth state listener updates UI automatically on auth state changes
+
+### Features
+
+- ✅ Email/password registration
+- ✅ Email/password login
+- ✅ Sign out
+- ✅ Session persistence across app launches
+- ✅ Input validation with user-friendly error messages
+- ✅ Loading states during async operations
+
+### Known Limitations (MVP)
+
+The following features are not implemented in the current MVP:
+- Password reset/forgot password flow
+- Email verification
+- Social login providers (Google, Apple, etc.)
+- Profile management
+- Password change functionality
+
+These features are planned for future releases.
+
 ## Development Status
 
 - ✅ Story 1.1: Project initialization complete
 - ✅ Story 1.2: Firebase backend & authentication setup complete
+- ✅ Story 1.3: User authentication (sign-up, login, logout, persistence) complete
+- ✅ Story 1.4: Manage Fixed Commitments complete
+
+## Features
+
+### Authentication
+- Email/password registration and login
+- Automatic session persistence
+- User-friendly error messages
+
+### Schedule Management
+- Create, view, edit, and delete fixed commitments
+- Commitments stored in Firestore with user isolation
+- Input validation for commitment data
+- Settings integration for easy access
+
+## Architecture
+
+This project follows the **MVVM (Model-View-ViewModel)** pattern with a **Repository service layer**:
+
+- **Models:** Data structures (User, FixedCommitment)
+- **Services:** Backend abstractions (AuthManager, DataRepository)
+- **ViewModels:** UI state management and business logic
+- **Views:** SwiftUI views for user interface
+
+### Key Patterns
+
+- **Repository Pattern:** DataRepository abstracts all Firestore operations
+- **Dependency Injection:** Services injected via @EnvironmentObject
+- **Async/await:** Modern concurrency for Firebase operations
+- **@MainActor:** Ensures UI updates on main thread
 
 ## Contributing
 
