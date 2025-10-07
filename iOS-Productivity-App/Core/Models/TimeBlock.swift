@@ -13,6 +13,7 @@ struct TimeBlock: Identifiable {
     var startTime: Date
     var endTime: Date
     var type: TimeBlockType
+    var scheduledTaskId: String? // Track the scheduled task ID for drag operations
     
     enum TimeBlockType {
         case commitment
@@ -30,12 +31,13 @@ struct TimeBlock: Identifiable {
         return "\(formatter.string(from: startTime)) - \(formatter.string(from: endTime))"
     }
     
-    init(id: UUID = UUID(), title: String, startTime: Date, endTime: Date, type: TimeBlockType) {
+    init(id: UUID = UUID(), title: String, startTime: Date, endTime: Date, type: TimeBlockType, scheduledTaskId: String? = nil) {
         self.id = id
         self.title = title
         self.startTime = startTime
         self.endTime = endTime
         self.type = type
+        self.scheduledTaskId = scheduledTaskId
     }
     
     init(from freeTimeSlot: FreeTimeSlot) {
@@ -44,7 +46,19 @@ struct TimeBlock: Identifiable {
             title: "Available",
             startTime: freeTimeSlot.startTime,
             endTime: freeTimeSlot.endTime,
-            type: .empty
+            type: .empty,
+            scheduledTaskId: nil
+        )
+    }
+    
+    init(from scheduledTask: ScheduledTask, taskTitle: String) {
+        self.init(
+            id: UUID(uuidString: scheduledTask.id ?? "") ?? UUID(),
+            title: taskTitle,
+            startTime: scheduledTask.startTime,
+            endTime: scheduledTask.endTime,
+            type: .task,
+            scheduledTaskId: scheduledTask.id
         )
     }
 }

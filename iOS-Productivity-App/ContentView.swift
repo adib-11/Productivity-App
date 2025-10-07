@@ -53,6 +53,14 @@ struct TodayView: View {
                 .task {
                     await scheduleViewModel.loadCommitments()
                 }
+                .onAppear {
+                    // Reload timeline whenever tab becomes visible (e.g., after marking task complete)
+                    _Concurrency.Task {
+                        await scheduleViewModel.loadTasks()
+                        await scheduleViewModel.loadScheduledTasks()
+                        scheduleViewModel.generateTimeBlocks()
+                    }
+                }
         }
     }
     

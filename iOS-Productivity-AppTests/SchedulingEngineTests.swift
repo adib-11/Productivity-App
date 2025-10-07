@@ -16,7 +16,15 @@ final class SchedulingEngineTests: XCTestCase {
     
     override func setUp() {
         super.setUp()
-        schedulingEngine = SchedulingEngine()
+        // Use test configuration with 6 AM start (original behavior for tests)
+        let testConfig = SchedulingConfiguration(
+            minimumGapBetweenEvents: 15 * 60,
+            workDayStart: 6,  // 6 AM for tests
+            workDayEnd: 24,
+            minimumTaskDuration: 15 * 60,
+            defaultTaskDuration: 30 * 60
+        )
+        schedulingEngine = SchedulingEngine(configuration: testConfig)
         calendar = Calendar.current
         // Use October 6, 2025 as test date
         testDate = calendar.date(from: DateComponents(year: 2025, month: 10, day: 6))!
@@ -285,5 +293,202 @@ final class SchedulingEngineTests: XCTestCase {
         // Slot 2: 11:15 AM - 12 AM
         XCTAssertEqual(calendar.component(.hour, from: freeSlots[1].startTime), 11)
         XCTAssertEqual(calendar.component(.minute, from: freeSlots[1].startTime), 15)
+    }
+    
+    // MARK: - Task Scheduling Tests (Story 2.3)
+    
+    // Helper method to create task
+    func createTask(title: String, priority: String, isCompleted: Bool = false, createdAt: Date? = nil) -> Task {
+        return Task(
+            id: UUID().uuidString,
+            userId: "testUser",
+            title: title,
+            priority: priority,
+            energyLevel: "any",
+            isCompleted: isCompleted,
+            createdAt: createdAt ?? Date()
+        )
+    }
+    
+    // Helper method to create free time slot
+    func createFreeSlot(startHour: Int, startMinute: Int = 0, endHour: Int, endMinute: Int = 0) -> FreeTimeSlot {
+        return FreeTimeSlot(
+            startTime: createDate(hour: startHour, minute: startMinute),
+            endTime: createDate(hour: endHour, minute: endMinute)
+        )
+    }
+    
+    func testScheduleMustDoTasks_EmptySlots() {
+        // Given: Must-do tasks but no free slots
+        let tasks = [
+            createTask(title: "Task 1", priority: "must-do"),
+            createTask(title: "Task 2", priority: "must-do")
+        ]
+        let freeSlots: [FreeTimeSlot] = []
+        
+        // When: Schedule tasks
+        let result = schedulingEngine.scheduleMustDoTasks(tasks: tasks, freeSlots: freeSlots, for: testDate)
+        
+        // Then: All tasks should be unscheduled
+        XCTAssertEqual(result.scheduled.count, 0)
+        XCTAssertEqual(result.unscheduled.count, 2)
+    }
+    
+    func testScheduleMustDoTasks_OneFreeSlot() {
+        // Given: 3 tasks and one 30-minute slot (fits only one task)
+        let tasks = [
+            createTask(title: "Task 1", priority: "must-do", createdAt: createDate(hour: 8)),
+            createTask(title: "Task 2", priority: "must-do", createdAt: createDate(hour: 9)),
+            createTask(title: "Task 3", priority: "must-do", createdAt: createDate(hour: 10))
+        ]
+        let freeSlots = [
+            createFreeSlot(startHour: 14, endHour: 14, endMinute: 30)
+        ]
+        
+        // When: Schedule tasks
+        let result = schedulingEngine.scheduleMustDoTasks(tasks: tasks, freeSlots: freeSlots, for: testDate)
+        
+        // Then: One task scheduled, two unscheduled
+        XCTAssertEqual(result.scheduled.count, 1)
+        XCTAssertEqual(result.unscheduled.count, 2)
+        XCTAssertEqual(result.scheduled[0].taskId, tasks[0].id) // Oldest task scheduled first
+    }
+    
+    func testScheduleMustDoTasks_MultipleFreeSlots() {
+        // Given: 3 tasks and multiple free slots
+        let tasks = [
+            createTask(title: "Task 1", priority: "must-do", createdAt: createDate(hour: 8)),
+            createTask(title: "Task 2", priority: "must-do", createdAt: createDate(hour: 9)),
+            createTask(title: "Task 3", priority: "must-do", createdAt: createDate(hour: 10))
+        ]
+        let freeSlots = [
+            createFreeSlot(startHour: 9, endHour: 10),
+            createFreeSlot(startHour: 14, endHour: 15, endMinute: 30),
+            createFreeSlot(startHour: 17, endHour: 18)
+        ]
+        
+        // When: Schedule tasks
+        let result = schedulingEngine.scheduleMustDoTasks(tasks: tasks, freeSlots: freeSlots, for: testDate)
+        
+        // Then: All tasks should be scheduled
+        XCTAssertEqual(result.scheduled.count, 3)
+        XCTAssertEqual(result.unscheduled.count, 0)
+    }
+    
+    func testScheduleMustDoTasks_OnlyMustDoTasks() {
+        // Given: Mix of must-do and flexible tasks
+        let tasks = [
+            createTask(title: "Task 1", priority: "must-do", createdAt: createDate(hour: 8)),
+            createTask(title: "Task 2", priority: "flexible", createdAt: createDate(hour: 9)),
+            createTask(title: "Task 3", priority: "must-do", createdAt: createDate(hour: 10))
+        ]
+        let freeSlots = [
+            createFreeSlot(startHour: 9, endHour: 11)
+        ]
+        
+        // When: Schedule tasks
+        let result = schedulingEngine.scheduleMustDoTasks(tasks: tasks, freeSlots: freeSlots, for: testDate)
+        
+        // Then: Only must-do tasks scheduled
+        XCTAssertEqual(result.scheduled.count, 2)
+        XCTAssertEqual(result.unscheduled.count, 0)
+        XCTAssertEqual(result.scheduled[0].taskId, tasks[0].id)
+        XCTAssertEqual(result.scheduled[1].taskId, tasks[2].id)
+    }
+    
+    func testScheduleMustDoTasks_CompletedTasksIgnored() {
+        // Given: Must-do tasks, some completed
+        let tasks = [
+            createTask(title: "Task 1", priority: "must-do", isCompleted: true, createdAt: createDate(hour: 8)),
+            createTask(title: "Task 2", priority: "must-do", isCompleted: false, createdAt: createDate(hour: 9))
+        ]
+        let freeSlots = [
+            createFreeSlot(startHour: 9, endHour: 11)
+        ]
+        
+        // When: Schedule tasks
+        let result = schedulingEngine.scheduleMustDoTasks(tasks: tasks, freeSlots: freeSlots, for: testDate)
+        
+        // Then: Only incomplete task scheduled
+        XCTAssertEqual(result.scheduled.count, 1)
+        XCTAssertEqual(result.scheduled[0].taskId, tasks[1].id)
+    }
+    
+    func testScheduleMustDoTasks_DefaultDuration() {
+        // Given: Task and free slot
+        let tasks = [
+            createTask(title: "Task 1", priority: "must-do", createdAt: createDate(hour: 8))
+        ]
+        let freeSlots = [
+            createFreeSlot(startHour: 9, endHour: 11)
+        ]
+        
+        // When: Schedule tasks
+        let result = schedulingEngine.scheduleMustDoTasks(tasks: tasks, freeSlots: freeSlots, for: testDate)
+        
+        // Then: Task assigned 30-minute default duration
+        XCTAssertEqual(result.scheduled.count, 1)
+        XCTAssertEqual(result.scheduled[0].duration, 30 * 60) // 30 minutes
+        XCTAssertEqual(calendar.component(.hour, from: result.scheduled[0].startTime), 9)
+        XCTAssertEqual(calendar.component(.minute, from: result.scheduled[0].startTime), 0)
+        XCTAssertEqual(calendar.component(.hour, from: result.scheduled[0].endTime), 9)
+        XCTAssertEqual(calendar.component(.minute, from: result.scheduled[0].endTime), 30)
+    }
+    
+    func testScheduleMustDoTasks_SlotSmallerThanDefault() {
+        // Given: Task (30-min default) and 35-minute slot
+        // The 35-min slot can fit the 30-min task (slot >= task duration)
+        // The 15-min gap is added AFTER the task, reducing space for subsequent tasks
+        let tasks = [
+            createTask(title: "Task 1", priority: "must-do", createdAt: createDate(hour: 8))
+        ]
+        let freeSlots = [
+            createFreeSlot(startHour: 9, endHour: 9, endMinute: 35)  // 35 minutes total
+        ]
+        
+        // When: Schedule tasks
+        let result = schedulingEngine.scheduleMustDoTasks(tasks: tasks, freeSlots: freeSlots, for: testDate)
+        
+        // Then: Task scheduled with full duration (30 minutes) since slot is large enough
+        XCTAssertEqual(result.scheduled.count, 1)
+        XCTAssertEqual(result.scheduled[0].duration, 30 * 60) // 30 minutes (full task duration)
+    }
+    
+    func testScheduleMustDoTasks_SlotTooSmall() {
+        // Given: Task and 10-minute slot (smaller than 15-min minimum)
+        let tasks = [
+            createTask(title: "Task 1", priority: "must-do", createdAt: createDate(hour: 8))
+        ]
+        let freeSlots = [
+            createFreeSlot(startHour: 9, endHour: 9, endMinute: 10)
+        ]
+        
+        // When: Schedule tasks
+        let result = schedulingEngine.scheduleMustDoTasks(tasks: tasks, freeSlots: freeSlots, for: testDate)
+        
+        // Then: Task not scheduled
+        XCTAssertEqual(result.scheduled.count, 0)
+        XCTAssertEqual(result.unscheduled.count, 1)
+    }
+    
+    func testScheduleMustDoTasks_FIFOOrder() {
+        // Given: 3 tasks with different creation times
+        let tasks = [
+            createTask(title: "Task 3", priority: "must-do", createdAt: createDate(hour: 10)),
+            createTask(title: "Task 1", priority: "must-do", createdAt: createDate(hour: 8)),
+            createTask(title: "Task 2", priority: "must-do", createdAt: createDate(hour: 9))
+        ]
+        let freeSlots = [
+            createFreeSlot(startHour: 14, endHour: 16)
+        ]
+        
+        // When: Schedule tasks
+        let result = schedulingEngine.scheduleMustDoTasks(tasks: tasks, freeSlots: freeSlots, for: testDate)
+        
+        // Then: Tasks scheduled in order of creation (oldest first)
+        XCTAssertEqual(result.scheduled.count, 3)
+        XCTAssertEqual(result.scheduled[0].taskId, tasks[1].id) // Task 1 (created at 8)
+        XCTAssertEqual(result.scheduled[1].taskId, tasks[2].id) // Task 2 (created at 9)
+        XCTAssertEqual(result.scheduled[2].taskId, tasks[0].id) // Task 3 (created at 10)
     }
 }

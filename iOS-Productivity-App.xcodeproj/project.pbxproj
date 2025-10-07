@@ -10,6 +10,7 @@
 		001 /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 002 /* App.swift */; };
 		003 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 004 /* ContentView.swift */; };
 		005 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 006 /* Assets.xcassets */; };
+		C003F20A2E944C93005D0B28 /* ScheduledTask.swift in Sources */ = {isa = PBXBuildFile; fileRef = C003F2092E944C93005D0B28 /* ScheduledTask.swift */; };
 		C061D91B2E92E19B00712682 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = C061D91A2E92E19B00712682 /* GoogleService-Info.plist */; };
 		C061D91E2E92F10600712682 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = C061D91D2E92F10600712682 /* User.swift */; };
 		C061D9202E92F11F00712682 /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C061D91F2E92F11F00712682 /* AuthManager.swift */; };
@@ -52,6 +53,7 @@
 		004 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		006 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		007 /* iOS-Productivity-App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "iOS-Productivity-App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		C003F2092E944C93005D0B28 /* ScheduledTask.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduledTask.swift; sourceTree = "<group>"; };
 		C061D91A2E92E19B00712682 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		C061D91D2E92F10600712682 /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
 		C061D91F2E92F11F00712682 /* AuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthManager.swift; sourceTree = "<group>"; };
@@ -164,6 +166,7 @@
 		015 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				C003F2092E944C93005D0B28 /* ScheduledTask.swift */,
 				C061D96F2E9402F800712682 /* FreeTimeSlot.swift */,
 				C061D9702E9402F800712682 /* SchedulingConfiguration.swift */,
 				C061D9672E93E0FA00712682 /* TimeBlock.swift */,
@@ -411,6 +414,7 @@
 				C061D9542E93967400712682 /* CommitmentViewModel.swift in Sources */,
 				C061D9612E93CBDD00712682 /* TaskFormView.swift in Sources */,
 				C061D9682E93E0FA00712682 /* TimeBlock.swift in Sources */,
+				C003F20A2E944C93005D0B28 /* ScheduledTask.swift in Sources */,
 				C061D9622E93CBDD00712682 /* TaskInboxView.swift in Sources */,
 				C061D9282E92F16300712682 /* AuthenticationView.swift in Sources */,
 				C061D95C2E93CB9800712682 /* Task.swift in Sources */,

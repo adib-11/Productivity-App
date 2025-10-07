@@ -93,6 +93,7 @@ class MockDataRepository: DataRepository {
     var createCommitmentCalled = false
     var updateCommitmentCalled = false
     var deleteCommitmentCalled = false
+    var updateScheduledTaskCalled = false
     
     // Captured values
     var capturedTask: Task?
@@ -100,9 +101,13 @@ class MockDataRepository: DataRepository {
     var capturedTaskId: String?
     var tasksToReturn: [Task] = []
     var mockCommitments: [FixedCommitment] = []
+    var mockTasks: [Task] = []
+    var mockScheduledTasks: [ScheduledTask] = []
     
     init() {
         let mockAuthManager = MockAuthManager()
+        // Set a default mock user to prevent authentication errors
+        mockAuthManager.currentUser = iOS_Productivity_App.User(id: "test-user", email: "test@example.com")
         super.init(authManager: mockAuthManager)
     }
     
@@ -124,7 +129,7 @@ class MockDataRepository: DataRepository {
             throw errorToThrow ?? DataRepositoryError.fetchFailed
         }
         
-        return tasksToReturn
+        return mockTasks.isEmpty ? tasksToReturn : mockTasks
     }
     
     override func updateTask(_ task: Task) async throws {
@@ -197,5 +202,78 @@ class MockDataRepository: DataRepository {
         return mockCommitments.filter { commitment in
             commitment.startTime >= startOfDay && commitment.startTime < endOfDay
         }.sorted { $0.startTime < $1.startTime }
+    }
+    
+    // MARK: - ScheduledTask Methods (Story 2.3)
+    
+    override func saveScheduledTask(_ scheduledTask: ScheduledTask) async throws {
+        if shouldThrowError {
+            throw DataRepositoryError.saveFailed
+        }
+        var newTask = scheduledTask
+        newTask.id = newTask.id ?? UUID().uuidString
+        mockScheduledTasks.append(newTask)
+    }
+    
+    override func fetchScheduledTasks(for date: Date) async throws -> [ScheduledTask] {
+        if shouldThrowError {
+            throw DataRepositoryError.fetchFailed
+        }
+        
+        // Filter scheduled tasks by date
+        let calendar = Calendar.current
+        let startOfDay = calendar.startOfDay(for: date)
+        guard let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) else {
+            return []
+        }
+        
+        return mockScheduledTasks.filter { task in
+            task.date >= startOfDay && task.date < endOfDay
+        }.sorted { $0.startTime < $1.startTime }
+    }
+    
+    override func deleteScheduledTask(id: String) async throws {
+        if shouldThrowError {
+            throw DataRepositoryError.deleteFailed
+        }
+        mockScheduledTasks.removeAll { $0.id == id }
+    }
+    
+    override func deleteAllScheduledTasks(for date: Date) async throws {
+        if shouldThrowError {
+            throw DataRepositoryError.deleteFailed
+        }
+        
+        // Filter and delete scheduled tasks for the given date
+        let calendar = Calendar.current
+        let startOfDay = calendar.startOfDay(for: date)
+        guard let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) else {
+            return
+        }
+        
+        mockScheduledTasks.removeAll { task in
+            task.date >= startOfDay && task.date < endOfDay
+        }
+    }
+    
+    override func updateScheduledTask(_ scheduledTask: ScheduledTask) async throws {
+        updateScheduledTaskCalled = true
+        
+        if shouldThrowError {
+            throw DataRepositoryError.updateFailed
+        }
+        
+        // Update the task in the mock array
+        if let index = mockScheduledTasks.firstIndex(where: { $0.id == scheduledTask.id }) {
+            mockScheduledTasks[index] = scheduledTask
+        }
+    }
+}
+
+// MARK: - Mock Extensions
+
+extension MockAuthManager {
+    func setMockUser(_ user: iOS_Productivity_App.User?) {
+        _mockCurrentUser = user
     }
 }

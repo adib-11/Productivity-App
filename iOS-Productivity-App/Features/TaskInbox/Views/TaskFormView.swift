@@ -36,8 +36,24 @@ struct TaskFormView: View {
                         Text("Must-Do").tag("must-do")
                     }
                     .pickerStyle(.segmented)
+                    
+                    // Show priority level picker only for must-do tasks
+                    if viewModel.priority == "must-do" {
+                        Picker("Urgency", selection: $viewModel.priorityLevel) {
+                            Text("🔴 Critical").tag(1)
+                            Text("🟠 High").tag(2)
+                            Text("🟡 Medium").tag(3)
+                            Text("🟢 Low").tag(4)
+                            Text("🔵 Minimal").tag(5)
+                        }
+                        .pickerStyle(.menu)
+                    }
                 } header: {
                     Text("Priority")
+                } footer: {
+                    if viewModel.priority == "must-do" {
+                        Text("Urgency determines the order tasks are scheduled. Critical tasks are scheduled first.")
+                    }
                 }
                 
                 Section {
@@ -49,6 +65,22 @@ struct TaskFormView: View {
                     .pickerStyle(.segmented)
                 } header: {
                     Text("Energy Level")
+                }
+                
+                Section {
+                    Picker("Estimated Duration", selection: $viewModel.estimatedDuration) {
+                        Text("15 min").tag(TimeInterval(900))
+                        Text("30 min").tag(TimeInterval(1800))
+                        Text("45 min").tag(TimeInterval(2700))
+                        Text("1 hour").tag(TimeInterval(3600))
+                        Text("1.5 hours").tag(TimeInterval(5400))
+                        Text("2 hours").tag(TimeInterval(7200))
+                    }
+                    .pickerStyle(.menu)
+                } header: {
+                    Text("Estimated Duration")
+                } footer: {
+                    Text("How long do you think this task will take?")
                 }
                 
                 if let errorMessage = viewModel.errorMessage {

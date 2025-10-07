@@ -16,7 +16,9 @@ class TaskViewModel: ObservableObject {
     // Form properties
     @Published var title = ""
     @Published var priority = "flexible"
+    @Published var priorityLevel: Int = 3 // Default medium priority
     @Published var energyLevel = "any"
+    @Published var estimatedDuration: TimeInterval = 1800 // Default 30 minutes
     
     // Edit mode
     @Published var editingTask: Task?
@@ -54,7 +56,9 @@ class TaskViewModel: ObservableObject {
             userId: "", // Will be set by repository
             title: title,
             priority: priority,
-            energyLevel: energyLevel
+            priorityLevel: priorityLevel,
+            energyLevel: energyLevel,
+            estimatedDuration: estimatedDuration
         )
         
         do {
@@ -77,7 +81,9 @@ class TaskViewModel: ObservableObject {
         var updatedTask = task
         updatedTask.title = title
         updatedTask.priority = priority
+        updatedTask.priorityLevel = priorityLevel
         updatedTask.energyLevel = energyLevel
+        updatedTask.estimatedDuration = estimatedDuration
         
         do {
             try await repository.updateTask(updatedTask)
@@ -130,7 +136,9 @@ class TaskViewModel: ObservableObject {
     func resetForm() {
         title = ""
         priority = "flexible"
+        priorityLevel = 3
         energyLevel = "any"
+        estimatedDuration = 1800 // Reset to default 30 minutes
         editingTask = nil
         errorMessage = nil
     }
@@ -139,6 +147,8 @@ class TaskViewModel: ObservableObject {
         editingTask = task
         title = task.title
         priority = task.priority
+        priorityLevel = task.priorityLevel
         energyLevel = task.energyLevel
+        estimatedDuration = task.estimatedDuration
     }
 }

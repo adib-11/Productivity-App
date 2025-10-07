@@ -19,6 +19,7 @@ class SchedulingEngine {
         commitments: [FixedCommitment]
     ) -> [FreeTimeSlot] {
         let calendar = Calendar.current
+        let now = Date()
         
         // Step 1: Calculate work day boundaries
         guard let workStart = calendar.date(
@@ -29,6 +30,9 @@ class SchedulingEngine {
         ) else {
             return []
         }
+        
+        // Use current time as start if we're scheduling for today and it's after work start
+        let effectiveWorkStart = calendar.isDateInToday(date) ? max(workStart, now) : workStart
         
         // Handle midnight (24:00) as start of next day
         let workEnd: Date
@@ -51,7 +55,7 @@ class SchedulingEngine {
         }
         
         // Step 2: Filter commitments to work hours and sort
-        let filteredCommitments = filterCommitmentsToWorkHours(commitments, workStart: workStart, workEnd: workEnd)
+        let filteredCommitments = filterCommitmentsToWorkHours(commitments, workStart: effectiveWorkStart, workEnd: workEnd)
         let sortedCommitments = filteredCommitments.sorted { $0.startTime < $1.startTime }
         
         // Step 3: Merge overlapping commitments
@@ -59,7 +63,7 @@ class SchedulingEngine {
         
         // Step 4: Handle empty commitments case
         if mergedCommitments.isEmpty {
-            return [FreeTimeSlot(startTime: workStart, endTime: workEnd)]
+            return [FreeTimeSlot(startTime: effectiveWorkStart, endTime: workEnd)]
         }
         
         // Step 5: Find gaps
@@ -67,12 +71,12 @@ class SchedulingEngine {
         
         // Gap before first commitment
         if let firstCommitment = mergedCommitments.first,
-           firstCommitment.startTime > workStart {
+           firstCommitment.startTime > effectiveWorkStart {
             let slotEnd = firstCommitment.startTime
-            let slotDuration = slotEnd.timeIntervalSince(workStart)
+            let slotDuration = slotEnd.timeIntervalSince(effectiveWorkStart)
             
             if slotDuration >= configuration.minimumTaskDuration {
-                freeSlots.append(FreeTimeSlot(startTime: workStart, endTime: slotEnd))
+                freeSlots.append(FreeTimeSlot(startTime: effectiveWorkStart, endTime: slotEnd))
             }
         }
         
@@ -159,5 +163,83 @@ class SchedulingEngine {
             
             return commitment
         }
+    }
+    
+    // MARK: - Task Scheduling
+    
+    func scheduleMustDoTasks(
+        tasks: [Task],
+        freeSlots: [FreeTimeSlot],
+        for date: Date
+    ) -> (scheduled: [ScheduledTask], unscheduled: [Task]) {
+        // Step 1: Filter and sort tasks by priority level (1 = highest priority)
+        let mustDoTasks = tasks
+            .filter { $0.priority == "must-do" && !$0.isCompleted }
+            .sorted { task1, task2 in
+                // Sort by priorityLevel first (lower number = higher priority)
+                if task1.priorityLevel != task2.priorityLevel {
+                    return task1.priorityLevel < task2.priorityLevel
+                }
+                // If same priority level, sort by creation time (FIFO)
+                return task1.createdAt < task2.createdAt
+            }
+        
+        // Step 2: Sort free slots by start time
+        let sortedSlots = freeSlots.sorted { $0.startTime < $1.startTime }
+        
+        // Step 3: Initialize results
+        var scheduledTasks: [ScheduledTask] = []
+        var remainingTasks: [Task] = []
+        
+        // Step 4: Track available slots (mutable copy)
+        var availableSlots = sortedSlots.map { slot in
+            (startTime: slot.startTime, endTime: slot.endTime)
+        }
+        
+        // Step 5: Iterate through must-do tasks
+        for task in mustDoTasks {
+            var taskScheduled = false
+            let taskDuration = task.estimatedDuration // Use task's estimated duration
+            
+            // Try to find a slot that fits the task duration
+            for (index, slot) in availableSlots.enumerated() {
+                let slotDuration = slot.endTime.timeIntervalSince(slot.startTime)
+                
+                if slotDuration >= taskDuration {
+                    // Schedule with task's estimated duration
+                    let startTime = slot.startTime
+                    let endTime = startTime.addingTimeInterval(taskDuration)
+                    
+                    let scheduledTask = ScheduledTask(
+                        taskId: task.id ?? "",
+                        date: date,
+                        startTime: startTime,
+                        endTime: endTime
+                    )
+                    
+                    scheduledTasks.append(scheduledTask)
+                    
+                    // Update available slot (consume the scheduled time + add gap for next task)
+                    let nextAvailableTime = endTime.addingTimeInterval(configuration.minimumGapBetweenEvents)
+                    availableSlots[index] = (startTime: nextAvailableTime, endTime: slot.endTime)
+                    
+                    taskScheduled = true
+                    break
+                }
+            }
+            
+            // If not scheduled, add to unscheduled list
+            if !taskScheduled {
+                remainingTasks.append(task)
+            }
+        }
+        
+        return (scheduledTasks, remainingTasks)
+    }
+    
+    // MARK: - Helper Methods for Task Scheduling
+    
+    private func canFitTask(in slot: FreeTimeSlot, taskDuration: TimeInterval) -> Bool {
+        return slot.duration >= taskDuration
     }
 }
