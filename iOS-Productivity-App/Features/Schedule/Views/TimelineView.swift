@@ -231,10 +231,10 @@ struct TimelineView: View {
                                     isResizing = true
                                     resizeOffset = value.translation.height
                                     resizingBlock = block
-                                    print("🟣 [ResizeGesture] onChanged: offset=\(value.translation.height)")
+                                    // print("🟣 [ResizeGesture] onChanged: offset=\(value.translation.height)")
                                 }
                                 .onEnded { value in
-                                    print("🟣 [ResizeGesture] onEnded: finalOffset=\(value.translation.height)")
+                                    // print("🟣 [ResizeGesture] onEnded: finalOffset=\(value.translation.height)")
                                     
                                     guard let resizingBlock = resizingBlock else {
                                         resetResizeState()
@@ -246,7 +246,7 @@ struct TimelineView: View {
                                     let currentDuration = resizingBlock.duration
                                     let newDuration = currentDuration + TimeInterval(minutesChanged * 60)
                                     
-                                    print("🟣 [ResizeGesture] Current: \(currentDuration/60)min, New: \(newDuration/60)min")
+                                    // print("🟣 [ResizeGesture] Current: \(currentDuration/60)min, New: \(newDuration/60)min")
                                     
                                     // Call ViewModel to resize task
                                     _Concurrency.Task {
@@ -254,11 +254,11 @@ struct TimelineView: View {
                                         
                                         await MainActor.run {
                                             if success {
-                                                print("✅ [ResizeGesture] Task resized successfully")
+                                                // print("✅ [ResizeGesture] Task resized successfully")
                                                 let generator = UIImpactFeedbackGenerator(style: .medium)
                                                 generator.impactOccurred()
                                             } else {
-                                                print("❌ [ResizeGesture] Invalid resize")
+                                                // print("❌ [ResizeGesture] Invalid resize")
                                                 let generator = UINotificationFeedbackGenerator()
                                                 generator.notificationOccurred(.warning)
                                             }
@@ -295,10 +295,10 @@ struct TimelineView: View {
                         let newStartTime = calculateNewStartTime(for: block, dragOffset: value.translation)
                         potentialDropSlot = findFreeSlotContaining(time: newStartTime)
                         
-                        print("🔵 [DragGesture] onChanged: offset=\(value.translation), potentialDropSlot=\(potentialDropSlot?.formattedTimeRange ?? "none")")
+                        // print("🔵 [DragGesture] onChanged: offset=\(value.translation), potentialDropSlot=\(potentialDropSlot?.formattedTimeRange ?? \"none\")")
                     }
                     .onEnded { value in
-                        print("🔵 [DragGesture] onEnded: finalOffset=\(value.translation)")
+                        // print("🔵 [DragGesture] onEnded: finalOffset=\(value.translation)")
                         
                         guard let draggedBlock = draggedBlock else {
                             resetDragState()
@@ -313,12 +313,12 @@ struct TimelineView: View {
                             
                             await MainActor.run {
                                 if success {
-                                    print("✅ [DragGesture] Task moved successfully")
+                                    // print("✅ [DragGesture] Task moved successfully")
                                     // Success haptic feedback
                                     let generator = UIImpactFeedbackGenerator(style: .medium)
                                     generator.impactOccurred()
                                 } else {
-                                    print("❌ [DragGesture] Invalid drop - task will bounce back")
+                                    // print("❌ [DragGesture] Invalid drop - task will bounce back")
                                     // Warning haptic feedback
                                     let generator = UINotificationFeedbackGenerator()
                                     generator.notificationOccurred(.warning)

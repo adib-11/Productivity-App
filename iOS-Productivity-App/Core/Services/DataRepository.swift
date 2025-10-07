@@ -329,12 +329,12 @@ class DataRepository: ObservableObject {
     
     func updateScheduledTask(_ scheduledTask: ScheduledTask) async throws {
         guard let userId = authManager.currentUser?.id else {
-            print("🔴 DataRepository: updateScheduledTask - Not authenticated")
+            // print("🔴 DataRepository: updateScheduledTask - Not authenticated")
             throw DataRepositoryError.notAuthenticated
         }
         
         guard let taskId = scheduledTask.id else {
-            print("🔴 DataRepository: updateScheduledTask - No task ID")
+            // print("🔴 DataRepository: updateScheduledTask - No task ID")
             throw DataRepositoryError.invalidData
         }
         
@@ -343,9 +343,9 @@ class DataRepository: ObservableObject {
                 .document(taskId)
                 .setData(from: scheduledTask, merge: true)
             
-            print("✅ DataRepository: Updated scheduled task: \(taskId)")
+            // print("✅ DataRepository: Updated scheduled task: \(taskId)")
         } catch {
-            print("🔴 DataRepository: updateScheduledTask error: \(error)")
+            // print("🔴 DataRepository: updateScheduledTask error: \(error)")
             throw DataRepositoryError.updateFailed
         }
     }

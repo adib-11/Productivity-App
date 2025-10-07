@@ -247,12 +247,12 @@ class ScheduleViewModel: ObservableObject {
     
     func moveScheduledTask(_ block: TimeBlock, to newStartTime: Date) async -> Bool {
         guard let scheduledTaskId = block.scheduledTaskId else {
-            print("❌ [moveScheduledTask] No scheduledTaskId found in block")
+            // print("❌ [moveScheduledTask] No scheduledTaskId found in block")
             return false
         }
         
         guard let scheduledTask = scheduledTasks.first(where: { $0.id == scheduledTaskId }) else {
-            print("❌ [moveScheduledTask] ScheduledTask not found with id: \(scheduledTaskId)")
+            // print("❌ [moveScheduledTask] ScheduledTask not found with id: \(scheduledTaskId)")
             return false
         }
         
@@ -260,11 +260,11 @@ class ScheduleViewModel: ObservableObject {
         let duration = scheduledTask.duration
         let newEndTime = newStartTime.addingTimeInterval(duration)
         
-        print("🔵 [moveScheduledTask] Attempting to move task from \(scheduledTask.startTime) to \(newStartTime)")
+        // print("🔵 [moveScheduledTask] Attempting to move task from \(scheduledTask.startTime) to \(newStartTime)")
         
         // Validate new time slot
         guard isTimeSlotAvailable(startTime: newStartTime, endTime: newEndTime, excluding: scheduledTaskId) else {
-            print("❌ [moveScheduledTask] Time slot not available")
+            // print("❌ [moveScheduledTask] Time slot not available")
             return false
         }
         
@@ -285,10 +285,10 @@ class ScheduleViewModel: ObservableObject {
             // Refresh timeline
             generateTimeBlocks()
             
-            print("✅ [moveScheduledTask] Task moved successfully")
+            // print("✅ [moveScheduledTask] Task moved successfully")
             return true
         } catch {
-            print("❌ [moveScheduledTask] Firestore update failed: \(error)")
+            // print("❌ [moveScheduledTask] Firestore update failed: \(error)")
             errorMessage = "Failed to move task: \(error.localizedDescription)"
             return false
         }
@@ -296,30 +296,30 @@ class ScheduleViewModel: ObservableObject {
     
     func resizeScheduledTask(_ block: TimeBlock, newDuration: TimeInterval) async -> Bool {
         guard let scheduledTaskId = block.scheduledTaskId else {
-            print("❌ [resizeScheduledTask] No scheduledTaskId found in block")
+            // print("❌ [resizeScheduledTask] No scheduledTaskId found in block")
             return false
         }
         
         guard let scheduledTask = scheduledTasks.first(where: { $0.id == scheduledTaskId }) else {
-            print("❌ [resizeScheduledTask] ScheduledTask not found with id: \(scheduledTaskId)")
+            // print("❌ [resizeScheduledTask] ScheduledTask not found with id: \(scheduledTaskId)")
             return false
         }
         
         // Validate minimum duration (15 minutes)
         let minimumDuration: TimeInterval = 15 * 60
         guard newDuration >= minimumDuration else {
-            print("❌ [resizeScheduledTask] Duration below minimum (15 minutes)")
+            // print("❌ [resizeScheduledTask] Duration below minimum (15 minutes)")
             return false
         }
         
         // Calculate new end time
         let newEndTime = scheduledTask.startTime.addingTimeInterval(newDuration)
         
-        print("🔵 [resizeScheduledTask] Attempting to resize task to duration: \(newDuration/60) minutes")
+        // print("🔵 [resizeScheduledTask] Attempting to resize task to duration: \(newDuration/60) minutes")
         
         // Validate new end time doesn't overlap
         guard isTimeSlotAvailable(startTime: scheduledTask.startTime, endTime: newEndTime, excluding: scheduledTaskId) else {
-            print("❌ [resizeScheduledTask] New end time overlaps with another block")
+            // print("❌ [resizeScheduledTask] New end time overlaps with another block")
             return false
         }
         
@@ -328,7 +328,7 @@ class ScheduleViewModel: ObservableObject {
         let startOfDay = calendar.startOfDay(for: currentDate)
         guard let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay),
               newEndTime <= endOfDay else {
-            print("❌ [resizeScheduledTask] New end time exceeds day bounds")
+            // print("❌ [resizeScheduledTask] New end time exceeds day bounds")
             return false
         }
         
@@ -348,10 +348,10 @@ class ScheduleViewModel: ObservableObject {
             // Refresh timeline
             generateTimeBlocks()
             
-            print("✅ [resizeScheduledTask] Task resized successfully")
+            // print("✅ [resizeScheduledTask] Task resized successfully")
             return true
         } catch {
-            print("❌ [resizeScheduledTask] Firestore update failed: \(error)")
+            // print("❌ [resizeScheduledTask] Firestore update failed: \(error)")
             errorMessage = "Failed to resize task: \(error.localizedDescription)"
             return false
         }
@@ -363,7 +363,7 @@ class ScheduleViewModel: ObservableObject {
         // Check no overlap with commitments
         for commitment in commitments {
             if timeSlotsOverlap(start1: startTime, end1: endTime, start2: commitment.startTime, end2: commitment.endTime) {
-                print("❌ [isTimeSlotAvailable] Overlaps with commitment: \(commitment.title)")
+                // print("❌ [isTimeSlotAvailable] Overlaps with commitment: \(commitment.title)")
                 return false
             }
         }
@@ -372,7 +372,7 @@ class ScheduleViewModel: ObservableObject {
         for scheduledTask in scheduledTasks {
             if scheduledTask.id != taskId {
                 if timeSlotsOverlap(start1: startTime, end1: endTime, start2: scheduledTask.startTime, end2: scheduledTask.endTime) {
-                    print("❌ [isTimeSlotAvailable] Overlaps with scheduled task")
+                    // print("❌ [isTimeSlotAvailable] Overlaps with scheduled task")
                     return false
                 }
             }
@@ -384,7 +384,7 @@ class ScheduleViewModel: ObservableObject {
         }
         
         if !isWithinFreeSlot {
-            print("❌ [isTimeSlotAvailable] Not within any free time slot")
+            // print("❌ [isTimeSlotAvailable] Not within any free time slot")
         }
         
         return isWithinFreeSlot
