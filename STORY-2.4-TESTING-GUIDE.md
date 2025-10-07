@@ -149,7 +149,7 @@ Watch Xcode console for these log patterns:
 ## Known Issues / Expected Behavior
 
 1. **Drag Near Screen Edge:** May trigger scroll - this is expected, use center of screen
-2. **Very Small Tasks (<35pt):** Resize handle not shown - this is expected
+2. **Very Small Tasks (15-min):** Resize handle shown smaller but always visible - users can still resize
 3. **Offline Mode:** Operations queue locally, sync when reconnected
 4. **Debug Prints:** All log statements present for troubleshooting
 

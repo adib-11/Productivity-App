@@ -211,16 +211,16 @@ struct TimelineView: View {
                             )
                         )
                     
-                    // Resize handle for task blocks (only if not too small)
-                    if block.type == .task && !isVerySmallBlock {
+                    // Resize handle for task blocks (always show for tasks, smaller for very small blocks)
+                    if block.type == .task {
                         VStack {
                             Spacer()
                             HStack {
                                 Spacer()
                                 Image(systemName: "line.3.horizontal")
-                                    .font(.system(size: 10))
+                                    .font(.system(size: isVerySmallBlock ? 8 : 10))
                                     .foregroundColor(.white.opacity(0.7))
-                                    .padding(6)
+                                    .padding(isVerySmallBlock ? 4 : 6)
                                     .background(Color.clear)
                                 Spacer()
                             }
