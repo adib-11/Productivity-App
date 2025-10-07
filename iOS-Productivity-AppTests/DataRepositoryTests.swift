@@ -787,8 +787,10 @@ extension DataRepositoryTests {
         let fetchedTask = fetchedTasks.first(where: { $0.id == scheduledTask.id })
         
         XCTAssertNotNil(fetchedTask)
-        XCTAssertEqual(fetchedTask?.startTime.timeIntervalSince1970, updatedTask.startTime.timeIntervalSince1970, accuracy: 1.0)
-        XCTAssertEqual(fetchedTask?.endTime.timeIntervalSince1970, updatedTask.endTime.timeIntervalSince1970, accuracy: 1.0)
+        if let fetchedTask = fetchedTask {
+            XCTAssertEqual(fetchedTask.startTime.timeIntervalSince1970, updatedTask.startTime.timeIntervalSince1970, accuracy: 1.0)
+            XCTAssertEqual(fetchedTask.endTime.timeIntervalSince1970, updatedTask.endTime.timeIntervalSince1970, accuracy: 1.0)
+        }
     }
     
     func testUpdateScheduledTask_InvalidAuth() async throws {
