@@ -36,26 +36,48 @@ struct TimelineView: View {
     @State private var resizeOffset: CGFloat = 0
     @State private var isResizing: Bool = false
     
+    // Task completion state
+    @State private var selectedTaskBlock: TimeBlock? = nil
+    
+    // Current time refresh state
+    @State private var currentTimeRefresh = Date()
+    
+    // Mood selector state
+    @State private var showMoodSelector = false
+    @State private var selectedMoodEnergyLevel: String?
+    
+    // Task suggestion state
+    @State private var showTaskSuggestions = false
+    
+    var scheduledTaskIds: Set<String> {
+        Set(viewModel.scheduledTasks.compactMap { $0.id })
+    }
+    
     var body: some View {
         ZStack {
             if viewModel.isLoading {
                 ProgressView()
             } else {
                 ScrollView {
-                    ZStack(alignment: .topLeading) {
-                        // Layer 1: Timeline grid (hour markers and labels)
-                        timelineGridView()
-                        
-                        // Layer 2: Commitment blocks
-                        commitmentBlocksView()
-                        
-                        // Layer 3: Current time indicator (highest z-index)
-                        currentTimeIndicatorView()
+                    VStack(spacing: 0) {
+                        ZStack(alignment: .topLeading) {
+                            // Layer 1: Timeline grid (hour markers and labels)
+                            timelineGridView()
+                            
+                            // Layer 2: Commitment blocks
+                            commitmentBlocksView()
+                            
+                            // Layer 3: Current time indicator (highest z-index)
+                            currentTimeIndicatorView()
+                        }
+                        .frame(height: CGFloat(endHour - startHour) * hourHeight)
+                        .padding(.top, 40)  // Increased padding for better separation from title
                     }
-                    .frame(height: CGFloat(endHour - startHour) * hourHeight)
-                    .padding(.top, 40)  // Increased padding for better separation from title
                 }
                 .background(Color.timelineBackground)
+                .onAppear {
+                    startTimeRefreshTimer()
+                }
             }
             
             // Success message overlay
@@ -76,6 +98,17 @@ struct TimelineView: View {
                 .transition(.move(edge: .bottom).combined(with: .opacity))
                 .animation(.spring(), value: viewModel.showSuccessMessage)
             }
+            
+            // Mood selector floating action button
+            VStack {
+                Spacer()
+                HStack {
+                    Spacer()
+                    moodFABButton()
+                        .padding(.trailing, 20)
+                        .padding(.bottom, 20)
+                }
+            }
         }
         .alert(isPresented: Binding<Bool>(
             get: { viewModel.errorMessage != nil },
@@ -87,6 +120,30 @@ struct TimelineView: View {
                 dismissButton: .default(Text("OK"))
             )
         }
+        .confirmationDialog(
+            selectedTaskBlock?.title ?? "Task Options",
+            isPresented: Binding<Bool>(
+                get: { selectedTaskBlock != nil },
+                set: { if !$0 { selectedTaskBlock = nil } }
+            ),
+            titleVisibility: .visible
+        ) {
+            Button("Mark Complete") {
+                if let taskBlock = selectedTaskBlock {
+                    _Concurrency.Task {
+                        await viewModel.markScheduledTaskComplete(taskBlock)
+                    }
+                    selectedTaskBlock = nil
+                }
+            }
+            Button("Cancel", role: .cancel) {
+                selectedTaskBlock = nil
+            }
+        } message: {
+            if let taskBlock = selectedTaskBlock {
+                Text(taskBlock.formattedTimeRange)
+            }
+        }
         .alert(isPresented: $viewModel.showInsufficientTimeAlert) {
             let unscheduledCount = viewModel.unscheduledMustDoTasks.count
             let taskList = viewModel.unscheduledMustDoTasks.map { "• \($0.title)" }.joined(separator: "\n")
@@ -95,6 +152,36 @@ struct TimelineView: View {
                 title: Text("⚠️ Insufficient Free Time"),
                 message: Text("Could not schedule \(unscheduledCount) must-do task(s) today:\n\n\(taskList)\n\nThese tasks will remain in your inbox. You can schedule them for tomorrow, or free up time by removing commitments."),
                 dismissButton: .default(Text("Keep for Later"))
+            )
+        }
+        .sheet(isPresented: $showMoodSelector) {
+            MoodEnergySelector(
+                repository: viewModel.dataRepository,
+                isPresented: $showMoodSelector
+            ) { energyLevel in
+                selectedMoodEnergyLevel = energyLevel
+                // Refresh mood state in ScheduleViewModel
+                _Concurrency.Task {
+                    await viewModel.loadCurrentMoodState()
+                }
+                // Show task suggestions after mood is selected
+                showTaskSuggestions = true
+            }
+        }
+        .sheet(isPresented: $showTaskSuggestions) {
+            TaskSuggestionView(
+                isPresented: $showTaskSuggestions,
+                currentEnergyLevel: selectedMoodEnergyLevel ?? "medium", // Fallback to medium if nil
+                scheduledTaskIds: scheduledTaskIds,
+                repository: viewModel.dataRepository,
+                onTaskSelected: { selectedTask in
+                    _Concurrency.Task {
+                        await viewModel.addSuggestedTaskToSchedule(
+                            selectedTask,
+                            currentMoodEnergy: selectedMoodEnergyLevel ?? "medium"
+                        )
+                    }
+                }
             )
         }
         .toolbar(content: {
@@ -283,6 +370,12 @@ struct TimelineView: View {
             )
             .zIndex(isBeingDragged ? 999 : (block.type == .empty ? 1 : 2))
             .accessibilityLabel(accessibilityLabelForBlock(block))
+            .onTapGesture {
+                // Only handle tap for task blocks
+                if block.type == .task && !isDragging {
+                    selectedTaskBlock = block
+                }
+            }
             .gesture(
                 block.type == .task ? DragGesture(minimumDistance: 10)
                     .onChanged { value in
@@ -398,38 +491,59 @@ struct TimelineView: View {
     }
     
     private func currentTimeIndicatorView() -> some View {
-        let currentTime = Date()
+        let currentTime = currentTimeRefresh // Use state variable to trigger updates
         let calendar = Calendar.current
         let hour = calendar.component(.hour, from: currentTime)
+        let minute = calendar.component(.minute, from: currentTime)
+        
+        // Convert to 12-hour format for display
+        let hour12 = hour == 0 ? 12 : (hour > 12 ? hour - 12 : hour)
+        let timeString = String(format: "%d:%02d", hour12, minute)
+        
+        // Calculate offset using the same time value as display and same startHour as blocks
+        let hoursSinceStart = hour - startHour  // Use TimelineView.startHour (0), not workday config
+        let minuteOffset = CGFloat(minute)
+        let rawTimeOffset = CGFloat(hoursSinceStart) * hourHeight + minuteOffset
+        
+        // Apply same clamping as task blocks for consistency
+        let maxHeight = CGFloat(endHour - startHour) * hourHeight
+        let timeOffset = max(0, min(rawTimeOffset, maxHeight))
         
         // Only show indicator if current time is within timeline hours
         if hour >= startHour && hour < endHour {
             return AnyView(
-                HStack(spacing: 0) {
-                    Circle()
-                        .fill(Color.currentTimeIndicator)
-                        .frame(width: 8, height: 8)
-                        .padding(.leading, 16)
-                    
-                    Rectangle()
-                        .fill(Color.currentTimeIndicator)
-                        .frame(height: 2)
-                    
-                    Text("Now")
-                        .font(.system(size: 12, weight: .semibold))
+                HStack(alignment: .center, spacing: 0) {  // Center alignment so line aligns with middle of time badge
+                    Text(timeString)
+                        .font(.system(size: 14, weight: .bold))
                         .foregroundColor(.white)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 4)
                         .background(Color.currentTimeIndicator)
                         .cornerRadius(4)
-                        .padding(.trailing, 16)
+                        .padding(.leading, 16)
+                    
+                    Rectangle()
+                        .fill(Color.currentTimeIndicator)
+                        .frame(height: 2)
                 }
-                .opacity(0.65)  // Semi-transparent so text underneath is visible
-                .offset(x: 0, y: viewModel.getCurrentTimeOffset() + 8)
-                .zIndex(10)  // Ensure Now indicator is above all blocks
+                .frame(height: 0)  // Zero height frame forces the offset to be from the top edge
+                .opacity(0.7)  // Reduced opacity for subtler appearance
+                .offset(x: 0, y: timeOffset + 10)
+                .zIndex(10)  // Ensure indicator is above all blocks
             )
         } else {
             return AnyView(EmptyView())
+        }
+    }
+    
+    // Timer to refresh current time indicator every minute
+    private func startTimeRefreshTimer() {
+        // Update immediately on appear
+        currentTimeRefresh = Date()
+        
+        // Then update every minute
+        Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { _ in
+            currentTimeRefresh = Date()
         }
     }
     
@@ -459,6 +573,118 @@ struct TimelineView: View {
         let formatter = DateFormatter()
         formatter.dateFormat = "h a"
         return formatter.string(from: date)
+    }
+    
+    // MARK: - Mood FAB Button
+    
+    @ViewBuilder
+    private func moodFABButton() -> some View {
+        let moodState = viewModel.currentMoodState
+        let hasSelection = moodState != nil
+        
+        Button(action: {
+            // Haptic feedback
+            let generator = UIImpactFeedbackGenerator(style: .medium)
+            generator.impactOccurred()
+            
+            showMoodSelector = true
+        }) {
+            ZStack {
+                // Background circle with mood-based gradient
+                Circle()
+                    .fill(moodGradient(for: moodState?.energyLevel))
+                    .frame(width: 56, height: 56)
+                    .shadow(color: moodShadowColor(for: moodState?.energyLevel).opacity(0.4), radius: 8, x: 0, y: 4)
+                
+                // Icon with mood-based styling
+                Image(systemName: moodIcon(for: moodState?.energyLevel))
+                    .font(.system(size: hasSelection ? 24 : 20, weight: .semibold))
+                    .foregroundColor(.white)
+                    .scaleEffect(hasSelection ? 1.1 : 1.0)
+                
+                // Subtle pulsing animation for selected state
+                if hasSelection {
+                    Circle()
+                        .stroke(Color.white.opacity(0.3), lineWidth: 2)
+                        .frame(width: 60, height: 60)
+                        .scaleEffect(pulseScale)
+                        .opacity(pulseOpacity)
+                }
+            }
+        }
+        .accessibilityLabel("Check in with your mood and energy")
+        .animation(.spring(response: 0.3, dampingFraction: 0.6), value: moodState?.energyLevel)
+        .onAppear {
+            if hasSelection {
+                startPulseAnimation()
+            }
+        }
+        .onChange(of: moodState?.energyLevel) { _ in
+            if hasSelection {
+                startPulseAnimation()
+            }
+        }
+    }
+    
+    // Mood-based gradient colors
+    private func moodGradient(for energyLevel: String?) -> LinearGradient {
+        switch energyLevel {
+        case "high":
+            return LinearGradient(
+                colors: [Color.orange, Color.red],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        case "medium":
+            return LinearGradient(
+                colors: [Color.blue, Color.cyan],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        case "low":
+            return LinearGradient(
+                colors: [Color.indigo, Color.purple],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        default:
+            return LinearGradient(
+                colors: [Color.accentColor, Color.accentColor.opacity(0.8)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        }
+    }
+    
+    // Mood-based shadow color
+    private func moodShadowColor(for energyLevel: String?) -> Color {
+        switch energyLevel {
+        case "high": return Color.orange
+        case "medium": return Color.blue
+        case "low": return Color.purple
+        default: return Color.accentColor
+        }
+    }
+    
+    // Mood-based icon
+    private func moodIcon(for energyLevel: String?) -> String {
+        switch energyLevel {
+        case "high": return "bolt.fill"
+        case "medium": return "battery.75"
+        case "low": return "moon.fill"
+        default: return "bolt.heart.fill"
+        }
+    }
+    
+    // Pulse animation state
+    @State private var pulseScale: CGFloat = 1.0
+    @State private var pulseOpacity: Double = 0.6
+    
+    private func startPulseAnimation() {
+        withAnimation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true)) {
+            pulseScale = 1.2
+            pulseOpacity = 0.0
+        }
     }
     
     // MARK: - Drag Gesture Helpers

@@ -11,6 +11,9 @@
 		003 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 004 /* ContentView.swift */; };
 		005 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 006 /* Assets.xcassets */; };
 		C003F20A2E944C93005D0B28 /* ScheduledTask.swift in Sources */ = {isa = PBXBuildFile; fileRef = C003F2092E944C93005D0B28 /* ScheduledTask.swift */; };
+		C05DF1532E96AF180021A7A2 /* MoodEnergyState.swift in Sources */ = {isa = PBXBuildFile; fileRef = C05DF1522E96AF180021A7A2 /* MoodEnergyState.swift */; };
+		C05DF1552E96AF2F0021A7A2 /* MoodEnergyViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C05DF1542E96AF2F0021A7A2 /* MoodEnergyViewModel.swift */; };
+		C05DF1572E96AF410021A7A2 /* MoodEnergySelector.swift in Sources */ = {isa = PBXBuildFile; fileRef = C05DF1562E96AF410021A7A2 /* MoodEnergySelector.swift */; };
 		C061D91B2E92E19B00712682 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = C061D91A2E92E19B00712682 /* GoogleService-Info.plist */; };
 		C061D91E2E92F10600712682 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = C061D91D2E92F10600712682 /* User.swift */; };
 		C061D9202E92F11F00712682 /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C061D91F2E92F11F00712682 /* AuthManager.swift */; };
@@ -33,6 +36,10 @@
 		C061D9712E9402F800712682 /* FreeTimeSlot.swift in Sources */ = {isa = PBXBuildFile; fileRef = C061D96F2E9402F800712682 /* FreeTimeSlot.swift */; };
 		C061D9722E9402F800712682 /* SchedulingConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = C061D9702E9402F800712682 /* SchedulingConfiguration.swift */; };
 		C061D9742E94030600712682 /* SchedulingEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = C061D9732E94030600712682 /* SchedulingEngine.swift */; };
+		C065BF872E97C1730018AC48 /* SuggestedTask.swift in Sources */ = {isa = PBXBuildFile; fileRef = C065BF862E97C1730018AC48 /* SuggestedTask.swift */; };
+		C065BF892E97C1A00018AC48 /* TaskSuggestionEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = C065BF882E97C1A00018AC48 /* TaskSuggestionEngine.swift */; };
+		C065BF8B2E97C1B50018AC48 /* TaskSuggestionViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C065BF8A2E97C1B50018AC48 /* TaskSuggestionViewModel.swift */; };
+		C065BF8D2E97C1C30018AC48 /* TaskSuggestionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C065BF8C2E97C1C30018AC48 /* TaskSuggestionView.swift */; };
 		F001 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = F002 /* FirebaseAuth */; };
 		F003 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = F004 /* FirebaseFirestore */; };
 		F005 /* FirebaseFirestoreSwift in Frameworks */ = {isa = PBXBuildFile; productRef = F006 /* FirebaseFirestoreSwift */; };
@@ -54,6 +61,9 @@
 		006 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		007 /* iOS-Productivity-App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "iOS-Productivity-App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		C003F2092E944C93005D0B28 /* ScheduledTask.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduledTask.swift; sourceTree = "<group>"; };
+		C05DF1522E96AF180021A7A2 /* MoodEnergyState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoodEnergyState.swift; sourceTree = "<group>"; };
+		C05DF1542E96AF2F0021A7A2 /* MoodEnergyViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoodEnergyViewModel.swift; sourceTree = "<group>"; };
+		C05DF1562E96AF410021A7A2 /* MoodEnergySelector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoodEnergySelector.swift; sourceTree = "<group>"; };
 		C061D91A2E92E19B00712682 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		C061D91D2E92F10600712682 /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
 		C061D91F2E92F11F00712682 /* AuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthManager.swift; sourceTree = "<group>"; };
@@ -77,6 +87,10 @@
 		C061D96F2E9402F800712682 /* FreeTimeSlot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FreeTimeSlot.swift; sourceTree = "<group>"; };
 		C061D9702E9402F800712682 /* SchedulingConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SchedulingConfiguration.swift; sourceTree = "<group>"; };
 		C061D9732E94030600712682 /* SchedulingEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SchedulingEngine.swift; sourceTree = "<group>"; };
+		C065BF862E97C1730018AC48 /* SuggestedTask.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SuggestedTask.swift; sourceTree = "<group>"; };
+		C065BF882E97C1A00018AC48 /* TaskSuggestionEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskSuggestionEngine.swift; sourceTree = "<group>"; };
+		C065BF8A2E97C1B50018AC48 /* TaskSuggestionViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskSuggestionViewModel.swift; sourceTree = "<group>"; };
+		C065BF8C2E97C1C30018AC48 /* TaskSuggestionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskSuggestionView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -166,6 +180,8 @@
 		015 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				C065BF862E97C1730018AC48 /* SuggestedTask.swift */,
+				C05DF1522E96AF180021A7A2 /* MoodEnergyState.swift */,
 				C003F2092E944C93005D0B28 /* ScheduledTask.swift */,
 				C061D96F2E9402F800712682 /* FreeTimeSlot.swift */,
 				C061D9702E9402F800712682 /* SchedulingConfiguration.swift */,
@@ -180,6 +196,7 @@
 		016 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				C065BF882E97C1A00018AC48 /* TaskSuggestionEngine.swift */,
 				C061D9732E94030600712682 /* SchedulingEngine.swift */,
 				C061D9512E93962100712682 /* DataRepository.swift */,
 				C061D91F2E92F11F00712682 /* AuthManager.swift */,
@@ -242,6 +259,8 @@
 		023 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				C065BF8C2E97C1C30018AC48 /* TaskSuggestionView.swift */,
+				C05DF1562E96AF410021A7A2 /* MoodEnergySelector.swift */,
 				C061D96B2E93E12500712682 /* TimelineView.swift */,
 				C061D9552E93968600712682 /* CommitmentFormView.swift */,
 				C061D9562E93968600712682 /* ManageCommitmentsView.swift */,
@@ -252,6 +271,8 @@
 		024 /* ViewModels */ = {
 			isa = PBXGroup;
 			children = (
+				C065BF8A2E97C1B50018AC48 /* TaskSuggestionViewModel.swift */,
+				C05DF1542E96AF2F0021A7A2 /* MoodEnergyViewModel.swift */,
 				C061D9692E93E11300712682 /* ScheduleViewModel.swift */,
 				C061D9532E93967400712682 /* CommitmentViewModel.swift */,
 			);
@@ -405,8 +426,11 @@
 				C061D9572E93968600712682 /* CommitmentFormView.swift in Sources */,
 				C061D9582E93968600712682 /* ManageCommitmentsView.swift in Sources */,
 				001 /* App.swift in Sources */,
+				C065BF8B2E97C1B50018AC48 /* TaskSuggestionViewModel.swift in Sources */,
+				C05DF1572E96AF410021A7A2 /* MoodEnergySelector.swift in Sources */,
 				C061D9712E9402F800712682 /* FreeTimeSlot.swift in Sources */,
 				C061D9742E94030600712682 /* SchedulingEngine.swift in Sources */,
+				C065BF892E97C1A00018AC48 /* TaskSuggestionEngine.swift in Sources */,
 				C061D9722E9402F800712682 /* SchedulingConfiguration.swift in Sources */,
 				C061D9262E92F16300712682 /* LoginView.swift in Sources */,
 				C061D9272E92F16300712682 /* SignUpView.swift in Sources */,
@@ -419,7 +443,11 @@
 				C061D9282E92F16300712682 /* AuthenticationView.swift in Sources */,
 				C061D95C2E93CB9800712682 /* Task.swift in Sources */,
 				C061D95E2E93CBC100712682 /* TaskViewModel.swift in Sources */,
+				C065BF872E97C1730018AC48 /* SuggestedTask.swift in Sources */,
+				C05DF1552E96AF2F0021A7A2 /* MoodEnergyViewModel.swift in Sources */,
 				C061D91E2E92F10600712682 /* User.swift in Sources */,
+				C05DF1532E96AF180021A7A2 /* MoodEnergyState.swift in Sources */,
+				C065BF8D2E97C1C30018AC48 /* TaskSuggestionView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

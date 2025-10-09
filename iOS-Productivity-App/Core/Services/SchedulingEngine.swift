@@ -242,4 +242,277 @@ class SchedulingEngine {
     private func canFitTask(in slot: FreeTimeSlot, taskDuration: TimeInterval) -> Bool {
         return slot.duration >= taskDuration
     }
+    
+    // MARK: - Smart Time Slot Selection for Suggested Tasks
+    
+    /// Finds the best available time slot for a suggested task based on energy level and time of day preferences
+    /// Returns nil if no suitable slot is available
+    func findBestTimeSlotForTask(
+        task: Task,
+        energyLevel: String,
+        scheduledTasks: [ScheduledTask],
+        commitments: [FixedCommitment],
+        date: Date
+    ) -> (startTime: Date, endTime: Date)? {
+        print("🔵 [findBestTimeSlotForTask] Starting for task: \(task.title), energy: \(energyLevel)")
+        
+        // Get task duration (use estimatedDuration from Task model)
+        let taskDuration = task.estimatedDuration
+        print("🔵 [findBestTimeSlotForTask] Task duration: \(taskDuration / 60) minutes")
+        
+        // Convert scheduled tasks to temporary commitments for free time calculation
+        let scheduledTaskCommitments = scheduledTasks.map { scheduledTask in
+            FixedCommitment(
+                id: UUID().uuidString,
+                userId: "temp",
+                title: "Scheduled Task",
+                startTime: scheduledTask.startTime,
+                endTime: scheduledTask.endTime
+            )
+        }
+        
+        // Combine actual commitments with scheduled task commitments
+        let allOccupiedTime = commitments + scheduledTaskCommitments
+        
+        // Find free time slots
+        let freeSlots = findFreeTimeSlots(for: date, commitments: allOccupiedTime)
+        print("🔵 [findBestTimeSlotForTask] Found \(freeSlots.count) free slots")
+        
+        // Filter slots that can fit the task
+        let viableSlots = freeSlots.filter { slot in
+            slot.duration >= taskDuration
+        }
+        
+        if viableSlots.isEmpty {
+            print("⚠️ [findBestTimeSlotForTask] No viable slots found")
+            return nil
+        }
+        
+        print("🔵 [findBestTimeSlotForTask] Found \(viableSlots.count) viable slots")
+        
+        // Score each slot, considering optimal placement within the slot
+        let calendar = Calendar.current
+        var scoredSlots: [(slot: FreeTimeSlot, score: Double, optimalStart: Date)] = []
+        
+        for slot in viableSlots {
+            // Find the optimal start time within this slot
+            let optimalStart = findOptimalStartTimeInSlot(
+                slot: slot,
+                taskDuration: taskDuration,
+                taskEnergyLevel: task.energyLevel,
+                currentEnergyLevel: energyLevel,
+                priorityLevel: task.priorityLevel,
+                calendar: calendar
+            )
+            
+            let energyScore = calculateEnergyMatchScore(
+                taskEnergy: task.energyLevel,
+                currentEnergy: energyLevel,
+                slotStart: optimalStart,
+                calendar: calendar
+            )
+            
+            let sizeScore = calculateBlockSizeScore(
+                slotDuration: slot.duration,
+                taskDuration: taskDuration
+            )
+            
+            let timeScore = calculateTimeOfDayScore(
+                priorityLevel: task.priorityLevel,
+                slotStart: optimalStart,
+                calendar: calendar
+            )
+            
+            // Weighted total score
+            let totalScore = (energyScore * 0.4) + (sizeScore * 0.3) + (timeScore * 0.3)
+            
+            print("🔵 [findBestTimeSlotForTask] Slot at \(optimalStart): energy=\(energyScore), size=\(sizeScore), time=\(timeScore), total=\(totalScore)")
+            
+            scoredSlots.append((slot: slot, score: totalScore, optimalStart: optimalStart))
+        }
+        
+        // Sort by score descending, with tie-breaker for equal scores
+        guard let bestSlot = scoredSlots.sorted(by: { slot1, slot2 in
+            // Primary: Sort by score (higher is better)
+            if abs(slot1.score - slot2.score) > 0.01 {  // Use tolerance for floating-point comparison
+                return slot1.score > slot2.score
+            }
+            
+            // Tie-breaker: For low-energy tasks, prefer later slots
+            // For high-energy tasks, prefer earlier slots
+            if energyLevel == "low" || task.energyLevel == "low" {
+                return slot1.optimalStart > slot2.optimalStart  // Later is better
+            } else if energyLevel == "high" || task.energyLevel == "high" {
+                return slot1.optimalStart < slot2.optimalStart  // Earlier is better
+            }
+            
+            // Default: Prefer later slots for flexibility
+            return slot1.optimalStart > slot2.optimalStart
+        }).first else {
+            return nil
+        }
+        
+        print("✅ [findBestTimeSlotForTask] Best slot selected with score: \(bestSlot.score)")
+        
+        // Return the time slot for the task using optimal start time
+        let startTime = bestSlot.optimalStart
+        let endTime = startTime.addingTimeInterval(taskDuration)
+        
+        return (startTime: startTime, endTime: endTime)
+    }
+    
+    // MARK: - Helper: Find Optimal Start Time Within Slot
+    
+    private func findOptimalStartTimeInSlot(
+        slot: FreeTimeSlot,
+        taskDuration: TimeInterval,
+        taskEnergyLevel: String,
+        currentEnergyLevel: String,
+        priorityLevel: Int,
+        calendar: Calendar
+    ) -> Date {
+        // For slots that are exactly the task duration or only slightly larger, use slot start
+        if slot.duration < taskDuration * 1.2 {
+            return slot.startTime
+        }
+        
+        // For larger slots, try to find a better start time based on energy preferences
+        let slotStartHour = calendar.component(.hour, from: slot.startTime)
+        let slotEndTime = slot.startTime.addingTimeInterval(slot.duration)
+        let slotEndHour = calendar.component(.hour, from: slotEndTime)
+        
+        // Check if slot spans into afternoon (handles midnight wrap-around)
+        // A slot spans into afternoon if it starts before noon AND (ends after noon OR extends to/past midnight)
+        let slotSpansAfternoon = slotStartHour < 12 && (slotEndHour >= 12 || slotEndHour < slotStartHour)
+        
+        // High energy tasks prefer morning (6-12)
+        if (taskEnergyLevel == "high" || currentEnergyLevel == "high") && priorityLevel <= 2 {
+            // If slot starts before or in morning, use start
+            if slotStartHour < 12 {
+                return slot.startTime
+            }
+            // If slot is entirely after morning, use start
+            return slot.startTime
+        }
+        
+        // Low energy tasks prefer afternoon (12-18)
+        if taskEnergyLevel == "low" || currentEnergyLevel == "low" {
+            // If slot spans into afternoon, start at noon or later
+            if slotSpansAfternoon {
+                // Calculate time at noon
+                let noon = calendar.date(bySettingHour: 12, minute: 0, second: 0, of: slot.startTime)!
+                
+                // Make sure there's enough room for the task after noon
+                let remainingDuration = slotEndTime.timeIntervalSince(noon)
+                if remainingDuration >= taskDuration {
+                    return noon
+                }
+            }
+            
+            // If slot is entirely in afternoon, use start
+            if slotStartHour >= 12 {
+                return slot.startTime
+            }
+        }
+        
+        // Default: Use slot start time
+        return slot.startTime
+    }
+    
+    // MARK: - Scoring Helper Methods
+    
+    private func calculateEnergyMatchScore(
+        taskEnergy: String,
+        currentEnergy: String,
+        slotStart: Date,
+        calendar: Calendar
+    ) -> Double {
+        let hour = calendar.component(.hour, from: slotStart)
+        let isMorning = hour >= 6 && hour < 12
+        let isAfternoon = hour >= 12 && hour < 18
+        
+        // High energy task scoring
+        if taskEnergy == "high" {
+            if currentEnergy == "high" {
+                return isMorning ? 1.0 : 0.6
+            } else if currentEnergy == "low" {
+                return isMorning ? 0.5 : 0.4
+            } else { // medium
+                return isMorning ? 0.8 : 0.6
+            }
+        }
+        
+        // Low energy task scoring
+        if taskEnergy == "low" {
+            if currentEnergy == "low" {
+                return isAfternoon ? 1.0 : 0.6
+            } else if currentEnergy == "high" {
+                return isAfternoon ? 0.5 : 0.4
+            } else { // medium
+                return isAfternoon ? 0.8 : 0.6
+            }
+        }
+        
+        // "Any" energy task scoring
+        if taskEnergy == "any" {
+            return 0.7 // Neutral score regardless of time
+        }
+        
+        return 0.5 // Default fallback
+    }
+    
+    private func calculateBlockSizeScore(
+        slotDuration: TimeInterval,
+        taskDuration: TimeInterval
+    ) -> Double {
+        // Prefer larger blocks for flexibility
+        // Use logarithmic scale to reward larger blocks without capping too early
+        let ratio = slotDuration / taskDuration
+        
+        if ratio < 1.0 {
+            // Slot too small - should be filtered out earlier, but score low
+            return ratio * 0.5
+        } else if ratio <= 1.5 {
+            // Comfortable fit - linear scale 0.5 to 0.8
+            return 0.5 + (ratio - 1.0) * 0.6
+        } else {
+            // Larger blocks - logarithmic bonus up to 1.0
+            // log2(ratio) scaled so that 4x task duration = 1.0
+            let logBonus = log2(ratio / 1.5) / log2(4.0 / 1.5)
+            return min(1.0, 0.8 + (logBonus * 0.2))
+        }
+    }
+    
+    private func calculateTimeOfDayScore(
+        priorityLevel: Int,
+        slotStart: Date,
+        calendar: Calendar
+    ) -> Double {
+        let hour = calendar.component(.hour, from: slotStart)
+        
+        // High priority tasks (Level 1-2) prefer morning
+        if priorityLevel <= 2 {
+            if hour >= 6 && hour < 12 {
+                return 1.0
+            } else if hour >= 12 && hour < 18 {
+                return 0.6
+            } else {
+                return 0.4
+            }
+        }
+        
+        // Low priority tasks (Level 4-5) prefer later in day
+        if priorityLevel >= 4 {
+            if hour >= 14 && hour < 20 {
+                return 1.0
+            } else if hour >= 12 && hour < 14 {
+                return 0.7
+            } else {
+                return 0.5
+            }
+        }
+        
+        // Medium priority (Level 3) - no strong preference
+        return 0.7
+    }
 }

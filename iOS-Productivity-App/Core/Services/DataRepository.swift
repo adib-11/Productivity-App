@@ -190,6 +190,25 @@ class DataRepository: ObservableObject {
         }
     }
     
+    func getFlexibleTasks() async throws -> [Task] {
+        guard let userId = authManager.currentUser?.id else {
+            throw DataRepositoryError.notAuthenticated
+        }
+        
+        do {
+            let snapshot = try await db.collection("users/\(userId)/tasks")
+                .whereField("priority", isEqualTo: "flexible")
+                .whereField("isCompleted", isEqualTo: false)
+                .getDocuments()
+            
+            return snapshot.documents.compactMap { doc in
+                try? doc.data(as: Task.self)
+            }
+        } catch {
+            throw DataRepositoryError.fetchFailed
+        }
+    }
+    
     func updateTask(_ task: Task) async throws {
         guard let userId = authManager.currentUser?.id else {
             throw DataRepositoryError.notAuthenticated
@@ -347,6 +366,46 @@ class DataRepository: ObservableObject {
         } catch {
             // print("🔴 DataRepository: updateScheduledTask error: \(error)")
             throw DataRepositoryError.updateFailed
+        }
+    }
+    
+    // MARK: - MoodEnergyState CRUD Operations
+    
+    func saveMoodEnergyState(_ state: MoodEnergyState) async throws {
+        guard let userId = authManager.currentUser?.id else {
+            throw DataRepositoryError.notAuthenticated
+        }
+        
+        var newState = state
+        newState.userId = userId
+        newState.timestamp = Date()
+        
+        do {
+            try db.collection("users/\(userId)/moodStates")
+                .addDocument(from: newState)
+        } catch {
+            throw DataRepositoryError.saveFailed
+        }
+    }
+    
+    func getCurrentMoodEnergyState() async throws -> MoodEnergyState? {
+        guard let userId = authManager.currentUser?.id else {
+            throw DataRepositoryError.notAuthenticated
+        }
+        
+        do {
+            let snapshot = try await db.collection("users/\(userId)/moodStates")
+                .order(by: "timestamp", descending: true)
+                .limit(to: 1)
+                .getDocuments()
+            
+            guard let document = snapshot.documents.first else {
+                return nil
+            }
+            
+            return try document.data(as: MoodEnergyState.self)
+        } catch {
+            throw DataRepositoryError.fetchFailed
         }
     }
 }

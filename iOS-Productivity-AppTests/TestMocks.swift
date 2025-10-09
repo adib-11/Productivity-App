@@ -104,6 +104,10 @@ class MockDataRepository: DataRepository {
     var mockTasks: [Task] = []
     var mockScheduledTasks: [ScheduledTask] = []
     
+    // Story 2.5: Track operations for completion tests
+    var updatedTasks: [Task] = []
+    var deletedScheduledTaskIds: [String] = []
+    
     init() {
         let mockAuthManager = MockAuthManager()
         // Set a default mock user to prevent authentication errors
@@ -138,6 +142,14 @@ class MockDataRepository: DataRepository {
         
         if !shouldSucceed || shouldThrowError {
             throw errorToThrow ?? DataRepositoryError.updateFailed
+        }
+        
+        // Story 2.5: Track updated tasks
+        updatedTasks.append(task)
+        
+        // Update in mockTasks array if exists
+        if let index = mockTasks.firstIndex(where: { $0.id == task.id }) {
+            mockTasks[index] = task
         }
     }
     
@@ -236,6 +248,10 @@ class MockDataRepository: DataRepository {
         if shouldThrowError {
             throw DataRepositoryError.deleteFailed
         }
+        
+        // Story 2.5: Track deleted scheduled task IDs
+        deletedScheduledTaskIds.append(id)
+        
         mockScheduledTasks.removeAll { $0.id == id }
     }
     
@@ -267,6 +283,72 @@ class MockDataRepository: DataRepository {
         if let index = mockScheduledTasks.firstIndex(where: { $0.id == scheduledTask.id }) {
             mockScheduledTasks[index] = scheduledTask
         }
+    }
+    
+    // MARK: - MoodEnergyState Methods
+    
+    var saveMoodEnergyStateCalled = false
+    var getCurrentMoodEnergyStateCalled = false
+    var capturedMoodState: MoodEnergyState?
+    var mockCurrentMoodState: MoodEnergyState?
+    
+    override func saveMoodEnergyState(_ state: MoodEnergyState) async throws {
+        saveMoodEnergyStateCalled = true
+        capturedMoodState = state
+        
+        if !shouldSucceed || shouldThrowError {
+            throw errorToThrow ?? DataRepositoryError.saveFailed
+        }
+        
+        mockCurrentMoodState = state
+    }
+    
+    override func getCurrentMoodEnergyState() async throws -> MoodEnergyState? {
+        getCurrentMoodEnergyStateCalled = true
+        
+        if !shouldSucceed || shouldThrowError {
+            throw errorToThrow ?? DataRepositoryError.fetchFailed
+        }
+        
+        return mockCurrentMoodState
+    }
+    
+    // MARK: - Story 3.3: Task Suggestion Methods
+    
+    var getFlexibleTasksCalled = false
+    var mockFlexibleTasks: [Task] = []
+    
+    override func getFlexibleTasks() async throws -> [Task] {
+        getFlexibleTasksCalled = true
+        
+        if !shouldSucceed || shouldThrowError {
+            throw errorToThrow ?? DataRepositoryError.fetchFailed
+        }
+        
+        return mockFlexibleTasks
+    }
+}
+
+// MARK: - Mock TaskSuggestionEngine
+
+class MockTaskSuggestionEngine: TaskSuggestionEngine {
+    var suggestTasksCalled = false
+    var capturedTasks: [Task]?
+    var capturedMoodEnergyLevel: String?
+    var capturedScheduledTaskIds: Set<String>?
+    var mockSuggestedTasks: [SuggestedTask] = []
+    
+    override func suggestTasks(
+        tasks: [Task],
+        moodEnergyLevel: String,
+        scheduledTaskIds: Set<String>
+    ) -> [SuggestedTask] {
+        suggestTasksCalled = true
+        capturedTasks = tasks
+        capturedMoodEnergyLevel = moodEnergyLevel
+        capturedScheduledTaskIds = scheduledTaskIds
+        
+        return mockSuggestedTasks
     }
 }
 

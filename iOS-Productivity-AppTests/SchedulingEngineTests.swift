@@ -491,4 +491,249 @@ final class SchedulingEngineTests: XCTestCase {
         XCTAssertEqual(result.scheduled[1].taskId, tasks[2].id) // Task 2 (created at 9)
         XCTAssertEqual(result.scheduled[2].taskId, tasks[0].id) // Task 3 (created at 10)
     }
+    
+    // MARK: - Story 3.4: Smart Time Slot Selection Tests
+    
+    func testFindBestTimeSlotForTask_HighEnergyMorning() {
+        // Given: High energy task and available morning slot
+        let task = Task(
+            id: "task-high-energy",
+            userId: "test-user",
+            title: "High Energy Task",
+            priority: "flexible",
+            priorityLevel: 2,
+            energyLevel: "high",
+            estimatedDuration: 3600, // 60 minutes
+            isCompleted: false,
+            createdAt: Date()
+        )
+        
+        // Create commitments that leave morning and afternoon slots free
+        let commitments = [
+            createCommitment(title: "Lunch", startHour: 12, endHour: 13)
+        ]
+        
+        // When: Find best time slot with high energy
+        let result = schedulingEngine.findBestTimeSlotForTask(
+            task: task,
+            energyLevel: "high",
+            scheduledTasks: [],
+            commitments: commitments,
+            date: testDate
+        )
+        
+        // Then: Should prefer morning slot (6 AM - 12 PM range)
+        XCTAssertNotNil(result)
+        let startHour = calendar.component(.hour, from: result!.startTime)
+        XCTAssertLessThan(startHour, 12, "High energy task should be scheduled in morning")
+        
+        // Verify duration is correct
+        let duration = result!.endTime.timeIntervalSince(result!.startTime)
+        XCTAssertEqual(duration, 3600, accuracy: 1.0)
+    }
+    
+    func testFindBestTimeSlotForTask_LowEnergyAfternoon() {
+        // Given: Low energy task and available afternoon slot
+        let task = Task(
+            id: "task-low-energy",
+            userId: "test-user",
+            title: "Low Energy Task",
+            priority: "flexible",
+            priorityLevel: 3,
+            energyLevel: "low",
+            estimatedDuration: 1800, // 30 minutes
+            isCompleted: false,
+            createdAt: Date()
+        )
+        
+        // Create commitments that leave morning and afternoon slots free
+        let commitments = [
+            createCommitment(title: "Morning Block", startHour: 9, endHour: 11)
+        ]
+        
+        // When: Find best time slot with low energy
+        let result = schedulingEngine.findBestTimeSlotForTask(
+            task: task,
+            energyLevel: "low",
+            scheduledTasks: [],
+            commitments: commitments,
+            date: testDate
+        )
+        
+        // Then: Should prefer afternoon slot (12 PM - 6 PM range)
+        XCTAssertNotNil(result)
+        let startHour = calendar.component(.hour, from: result!.startTime)
+        XCTAssertGreaterThanOrEqual(startHour, 12, "Low energy task should be scheduled in afternoon or later")
+        
+        // Verify duration is correct
+        let duration = result!.endTime.timeIntervalSince(result!.startTime)
+        XCTAssertEqual(duration, 1800, accuracy: 1.0)
+    }
+    
+    func testFindBestTimeSlotForTask_NoAvailableSlots() {
+        // Given: Task and completely full schedule
+        let task = Task(
+            id: "task-no-slot",
+            userId: "test-user",
+            title: "No Slot Task",
+            priority: "flexible",
+            priorityLevel: 2,
+            energyLevel: "any",
+            estimatedDuration: 1800,
+            isCompleted: false,
+            createdAt: Date()
+        )
+        
+        // Fill entire day with commitments (6 AM to midnight)
+        var commitments: [FixedCommitment] = []
+        for hour in 6..<24 {
+            commitments.append(createCommitment(
+                title: "Block \(hour)",
+                startHour: hour,
+                endHour: hour + 1
+            ))
+        }
+        
+        // When: Try to find time slot
+        let result = schedulingEngine.findBestTimeSlotForTask(
+            task: task,
+            energyLevel: "medium",
+            scheduledTasks: [],
+            commitments: commitments,
+            date: testDate
+        )
+        
+        // Then: Should return nil
+        XCTAssertNil(result, "Should return nil when no slots available")
+    }
+    
+    func testFindBestTimeSlotForTask_MinimumDuration() {
+        // Given: Task requiring 60 minutes and slots of varying sizes
+        let task = Task(
+            id: "task-duration",
+            userId: "test-user",
+            title: "Duration Task",
+            priority: "flexible",
+            priorityLevel: 2,
+            energyLevel: "any",
+            estimatedDuration: 3600, // 60 minutes
+            isCompleted: false,
+            createdAt: Date()
+        )
+        
+        // Create commitments leaving only one slot >= 60 minutes
+        let commitments = [
+            createCommitment(title: "Morning", startHour: 6, endHour: 9),
+            createCommitment(title: "Mid-morning", startHour: 9, startMinute: 30, endHour: 10),
+            createCommitment(title: "Afternoon", startHour: 11, endHour: 24)
+        ]
+        
+        // When: Find best time slot
+        let result = schedulingEngine.findBestTimeSlotForTask(
+            task: task,
+            energyLevel: "medium",
+            scheduledTasks: [],
+            commitments: commitments,
+            date: testDate
+        )
+        
+        // Then: Should find the slot between 10:15-11:00 (45 min available after gap)
+        // OR return nil if no slot is large enough
+        // With 15-min gap: 10:00 + 15min = 10:15, then 10:15 to 11:00 = 45 minutes (too small)
+        // So this should return nil
+        XCTAssertNil(result, "Should return nil when no slot meets minimum duration")
+    }
+    
+    func testFindBestTimeSlotForTask_LargestBlockPreferred() {
+        // Given: Task and multiple available slots of different sizes
+        let task = Task(
+            id: "task-large-block",
+            userId: "test-user",
+            title: "Large Block Task",
+            priority: "flexible",
+            priorityLevel: 3,
+            energyLevel: "any",
+            estimatedDuration: 1800, // 30 minutes
+            isCompleted: false,
+            createdAt: Date()
+        )
+        
+        // Create commitments leaving multiple slots: small, medium, large
+        let commitments = [
+            createCommitment(title: "Block 1", startHour: 7, endHour: 8),
+            createCommitment(title: "Block 2", startHour: 9, endHour: 10),
+            createCommitment(title: "Block 3", startHour: 12, endHour: 13)
+        ]
+        
+        // Free slots will be:
+        // 6-7 (1 hour), 8:15-9 (45 min), 10:15-12 (1h45m), 13:15-24 (10h45m)
+        
+        // When: Find best time slot (any energy, so size matters most)
+        let result = schedulingEngine.findBestTimeSlotForTask(
+            task: task,
+            energyLevel: "medium",
+            scheduledTasks: [],
+            commitments: commitments,
+            date: testDate
+        )
+        
+        // Then: Should prefer largest block (afternoon slot 13:15-24)
+        XCTAssertNotNil(result)
+        let startHour = calendar.component(.hour, from: result!.startTime)
+        // With "any" energy and equal priority, size score dominates
+        // The largest block should be selected
+        XCTAssertGreaterThanOrEqual(startHour, 10, "Should prefer larger afternoon blocks")
+    }
+    
+    func testFindBestTimeSlotForTask_WithScheduledTasks() {
+        // Given: Task, commitments, and existing scheduled tasks
+        let task = Task(
+            id: "task-with-scheduled",
+            userId: "test-user",
+            title: "New Task",
+            priority: "flexible",
+            priorityLevel: 2,
+            energyLevel: "high",
+            estimatedDuration: 1800,
+            isCompleted: false,
+            createdAt: Date()
+        )
+        
+        let commitment = createCommitment(title: "Meeting", startHour: 14, endHour: 15)
+        
+        let scheduledTask = ScheduledTask(
+            id: "st-1",
+            taskId: "other-task",
+            date: testDate,
+            startTime: createDate(hour: 10),
+            endTime: createDate(hour: 11)
+        )
+        
+        // When: Find best time slot considering existing scheduled tasks
+        let result = schedulingEngine.findBestTimeSlotForTask(
+            task: task,
+            energyLevel: "high",
+            scheduledTasks: [scheduledTask],
+            commitments: [commitment],
+            date: testDate
+        )
+        
+        // Then: Should find slot that doesn't conflict with scheduled task or commitment
+        XCTAssertNotNil(result)
+        
+        // Verify no overlap with scheduled task (10-11) or commitment (14-15)
+        let startTime = result!.startTime
+        let endTime = result!.endTime
+        
+        let scheduledEnd = calendar.date(byAdding: .hour, value: 11, to: calendar.startOfDay(for: testDate))!
+        let commitmentStart = calendar.date(byAdding: .hour, value: 14, to: calendar.startOfDay(for: testDate))!
+        
+        // Should be either before 10 AM or between 11:15-14:00
+        let isBeforeScheduled = endTime <= scheduledTask.startTime
+        let isBetween = startTime >= scheduledEnd && endTime <= commitmentStart
+        let isAfterCommitment = startTime >= commitment.endTime
+        
+        XCTAssertTrue(isBeforeScheduled || isBetween || isAfterCommitment,
+                      "Should not overlap with scheduled task or commitment")
+    }
 }

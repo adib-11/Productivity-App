@@ -38,7 +38,15 @@ class TaskViewModel: ObservableObject {
         errorMessage = nil
         
         do {
-            tasks = try await repository.fetchTasks()
+            let fetchedTasks = try await repository.fetchTasks()
+            // Sort tasks: unchecked (incomplete) first, then checked (completed)
+            // Within each group, sort alphabetically by title
+            tasks = fetchedTasks.sorted { task1, task2 in
+                if task1.isCompleted != task2.isCompleted {
+                    return !task1.isCompleted // False (uncompleted) comes before True (completed)
+                }
+                return task1.title.localizedCaseInsensitiveCompare(task2.title) == .orderedAscending
+            }
         } catch {
             errorMessage = error.localizedDescription
         }
